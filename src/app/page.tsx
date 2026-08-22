@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Copy, Download, Loader2, Sparkles, ChevronRight, Mail, Phone, Linkedin, Github, MapPin } from "lucide-react";
+import { Copy, Download, Loader2, Sparkles, ChevronRight, Mail, Phone, Link, Code, MapPin } from "lucide-react";
 import PaywallModal from "@/components/PaywallModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -56,8 +56,8 @@ export default function Home() {
     const lower = info.toLowerCase();
     const iconProps = { className: "w-4 h-4 mr-1.5", style: { color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined } };
     if (lower.includes("@") || lower.includes("email")) return <Mail {...iconProps} />;
-    if (lower.includes("linkedin")) return <Linkedin {...iconProps} />;
-    if (lower.includes("github")) return <Github {...iconProps} />;
+    if (lower.includes("linkedin")) return <Link {...iconProps} />;
+    if (lower.includes("github")) return <Code {...iconProps} />;
     if (lower.match(/[0-9]{3}/) && (lower.includes("-") || lower.includes("+") || lower.includes("("))) return <Phone {...iconProps} />;
     return <MapPin {...iconProps} />;
   };
