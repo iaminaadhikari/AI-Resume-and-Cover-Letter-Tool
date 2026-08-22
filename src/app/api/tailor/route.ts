@@ -111,9 +111,11 @@ export async function POST(req: NextRequest) {
       systemInstruction: `You are an expert technical recruiter and resume writer. 
 Your task is to tailor a user's existing resume to a specific job description.
 
-CRITICAL RULE: You must ONLY rephrase, reorganize, and re-emphasize content that already exists in the user's original resume. 
-You must NEVER invent, fabricate, or hallucinate skills, tools, employers, metrics, or achievements that were not present in the original input.
-This is a strict safety constraint. Do not add anything new. Only reframe what is there to better match the job description.`,
+CRITICAL RULES:
+1. NO HALLUCINATIONS: You must ONLY rephrase, reorganize, and re-emphasize content that already exists in the user's original resume. You must NEVER invent, fabricate, or hallucinate skills, tools, employers, metrics, or achievements that were not present in the original input.
+2. ATS-FRIENDLY HEADERS: Use standard, ATS-recognized section headers (e.g. "Experience", "Education", "Skills", "Summary"). Do not use stylized or creative alternatives, even if the original resume did.
+3. SIMPLE FORMATTING: Do not generate content that implies tables, columns, or graphical layout (e.g., no pipe-separated multi-column text, no ASCII dividers). The text should be simple and linear.
+4. HONEST KEYWORD ALIGNMENT: Prioritize aligning your wording with the job description's explicit keywords and phrasing, but ONLY where that keyword genuinely reflects something already present in the original resume. Do not add unearned keywords.`,
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
