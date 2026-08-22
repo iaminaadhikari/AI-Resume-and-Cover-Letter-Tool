@@ -51,44 +51,56 @@ async function extractDocxStyles(buffer: Buffer) {
   }
 }
 
-async function extractPdfStyles(buffer: Buffer) {
-  try {
-    const pdfString = buffer.toString('utf8');
-    
-    // Best-effort PDF color extraction by searching for the 'rg' (RGB fill) operator
-    // Format: R G B rg  (values 0.0 to 1.0)
-    const rgMatches = pdfString.match(/([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+rg/g) || [];
-    const colorCounts: Record<string, number> = {};
-    
-    rgMatches.forEach(match => {
-      const parts = match.split(/\s+/);
-      if (parts.length >= 3) {
-        const r = Math.round(parseFloat(parts[0]) * 255);
-        const g = Math.round(parseFloat(parts[1]) * 255);
-        const b = Math.round(parseFloat(parts[2]) * 255);
-        
-        // Convert to HEX
-        const hex = ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-        
-        // Ignore black, white, and grays
-        if (hex !== "000000" && hex !== "FFFFFF" && Math.abs(r - g) > 10 && Math.abs(g - b) > 10) {
-          colorCounts[hex] = (colorCounts[hex] || 0) + 1;
-        }
-      }
-    });
-    
-    const sortedColors = Object.keys(colorCounts).sort((a, b) => colorCounts[b] - colorCounts[a]);
-    const headingColor = sortedColors.length > 0 ? sortedColors[0] : null;
+async function extractPdfStyles(buffer: Buffer): Promise<any> {
+  return new Promise((resolve) => {
+    try {
+      // Dynamic import to avoid next.js bundling issues with some node libs if any
+      const PDFParser = require("pdf2json");
+      const parser = new PDFParser();
+      
+      parser.on("pdfParser_dataError", (errData: any) => {
+        console.error("PDF style extraction error:", errData);
+        resolve(null);
+      });
+      
+      parser.on("pdfParser_dataReady", (pdfData: any) => {
+        try {
+          const colorCounts: Record<string, number> = {};
+          
+          pdfData.Pages.forEach((page: any) => {
+            page.Texts.forEach((text: any) => {
+              if (text.oc) {
+                let hex = text.oc.toUpperCase();
+                if (hex.startsWith("#")) hex = hex.substring(1);
+                // Ignore black/white and grays
+                if (hex !== "000000" && hex !== "FFFFFF" && !hex.startsWith("4") && !hex.startsWith("5") && !hex.startsWith("6") && !hex.startsWith("7")) {
+                  colorCounts[hex] = (colorCounts[hex] || 0) + 1;
+                }
+              }
+            });
+          });
+          
+          const sortedColors = Object.keys(colorCounts).sort((a, b) => colorCounts[b] - colorCounts[a]);
+          const headingColor = sortedColors.length > 0 ? sortedColors[0] : null;
 
-    return {
-      headingColor,
-      headingFont: null, // Hard to extract reliably without full font table parsing
-      bodyFont: null
-    };
-  } catch (e) {
-    console.error("Failed to extract PDF styles:", e);
-    return null;
-  }
+          resolve({
+            headingColor,
+            headingFont: null,
+            bodyFont: null,
+            bodySize: null
+          });
+        } catch(e) {
+          console.error("Error processing pdfData:", e);
+          resolve(null);
+        }
+      });
+      
+      parser.parseBuffer(buffer);
+    } catch (e) {
+      console.error("Failed to init PDFParser:", e);
+      resolve(null);
+    }
+  });
 }
 
 export async function POST(req: NextRequest) {
