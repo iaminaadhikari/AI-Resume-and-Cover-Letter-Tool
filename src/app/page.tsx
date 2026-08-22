@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Copy, Download, Loader2, Sparkles, ChevronRight } from "lucide-react";
+import { Copy, Download, Loader2, Sparkles, ChevronRight, Mail, Phone, Linkedin, Github, MapPin } from "lucide-react";
 import PaywallModal from "@/components/PaywallModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -51,6 +51,16 @@ export default function Home() {
   // Usage tracking
   const [freeUsesRemaining, setFreeUsesRemaining] = useState<number>(2);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
+
+  const getContactIcon = (info: string) => {
+    const lower = info.toLowerCase();
+    const iconProps = { className: "w-4 h-4 mr-1.5", style: { color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined } };
+    if (lower.includes("@") || lower.includes("email")) return <Mail {...iconProps} />;
+    if (lower.includes("linkedin")) return <Linkedin {...iconProps} />;
+    if (lower.includes("github")) return <Github {...iconProps} />;
+    if (lower.match(/[0-9]{3}/) && (lower.includes("-") || lower.includes("+") || lower.includes("("))) return <Phone {...iconProps} />;
+    return <MapPin {...iconProps} />;
+  };
 
   useEffect(() => {
     // Load usage from localStorage on mount
@@ -415,11 +425,11 @@ export default function Home() {
                     {/* Header: Name and Contact Info */}
                     <div className="text-center mb-6">
                       <h2 className="text-2xl font-bold uppercase mb-2" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>{result.tailored_resume.name}</h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 flex flex-wrap justify-center gap-x-2 gap-y-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 flex flex-wrap justify-center gap-x-3 gap-y-2 mt-2">
                         {result.tailored_resume.contact_info.map((info, idx) => (
-                          <span key={idx}>
-                            {info}
-                            {idx < result.tailored_resume.contact_info.length - 1 && <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>}
+                          <span key={idx} className="flex items-center">
+                            {getContactIcon(info)}
+                            <span>{info}</span>
                           </span>
                         ))}
                       </p>
