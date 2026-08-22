@@ -58,18 +58,39 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
     })
   );
 
+  const getDocxIcon = (info: string) => {
+    const lower = info.toLowerCase();
+    if (lower.includes("@") || lower.includes("email")) return "✉ ";
+    if (lower.includes("linkedin")) return "🔗 ";
+    if (lower.includes("github")) return "💻 ";
+    if (lower.match(/[0-9]{3}/) && (lower.includes("-") || lower.includes("+") || lower.includes("("))) return "☎ ";
+    return "📍 ";
+  };
+
+  const contactRuns = resume.contact_info.map((info, idx) => {
+    const icon = getDocxIcon(info);
+    const textStr = info + (idx < resume.contact_info.length - 1 ? "    |    " : "");
+    return [
+      new TextRun({
+        text: icon,
+        size: 20,
+        font: "Segoe UI Symbol",
+        color: HEADER_COLOR,
+      }),
+      new TextRun({
+        text: textStr,
+        size: 20,
+        font: FONT_FAMILY,
+        color: "555555",
+      }),
+    ];
+  }).flat();
+
   // Contact Info
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      children: [
-        new TextRun({
-          text: resume.contact_info.join(" | "),
-          size: 20, // 10pt
-          font: FONT_FAMILY,
-          color: "555555",
-        }),
-      ],
+      children: contactRuns,
       spacing: { after: 240 },
     })
   );
