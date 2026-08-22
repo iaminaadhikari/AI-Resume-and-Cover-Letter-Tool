@@ -182,7 +182,7 @@ export default function Home() {
 
         {/* Header */}
         <div className="text-center mb-12 pt-8">
-          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl mb-4 text-gray-900 dark:text-white">
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl mb-4 text-gray-900 dark:text-white drop-shadow-none" style={{ textShadow: "none", WebkitTextStroke: "0" }}>
             Turn any resume into a perfect match for any job <br className="hidden md:block"/>
             <span className="text-indigo-600 dark:text-indigo-400">— in under a minute</span>
           </h1>
