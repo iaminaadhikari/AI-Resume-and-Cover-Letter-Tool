@@ -217,7 +217,13 @@ export default function Home() {
                         body: formData,
                       });
                       
-                      const data = await res.json();
+                      let data;
+                      try {
+                        data = await res.json();
+                      } catch (e) {
+                        throw new Error(`Server returned ${res.status} ${res.statusText}. Please restart your dev server if this persists.`);
+                      }
+                      
                       if (!res.ok) throw new Error(data.error || "Failed to extract text");
                       
                       setOriginalResume(data.text);
