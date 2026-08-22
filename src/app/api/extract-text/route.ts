@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import mammoth from "mammoth";
+// @ts-ignore
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
 
 export async function POST(req: NextRequest) {
