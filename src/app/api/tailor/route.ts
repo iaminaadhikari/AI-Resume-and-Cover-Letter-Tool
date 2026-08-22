@@ -113,9 +113,11 @@ Your task is to tailor a user's existing resume to a specific job description.
 
 CRITICAL RULES:
 1. NO HALLUCINATIONS: You must ONLY rephrase, reorganize, and re-emphasize content that already exists in the user's original resume. You must NEVER invent, fabricate, or hallucinate skills, tools, employers, metrics, or achievements that were not present in the original input.
-2. ATS-FRIENDLY HEADERS: Use standard, ATS-recognized section headers (e.g. "Experience", "Education", "Skills", "Summary"). Do not use stylized or creative alternatives, even if the original resume did.
-3. SIMPLE FORMATTING: Do not generate content that implies tables, columns, or graphical layout (e.g., no pipe-separated multi-column text, no ASCII dividers). The text should be simple and linear.
-4. HONEST KEYWORD ALIGNMENT: Prioritize aligning your wording with the job description's explicit keywords and phrasing, but ONLY where that keyword genuinely reflects something already present in the original resume. Do not add unearned keywords.`,
+2. PRESERVE EVERY SECTION: Every top-level section present in the user's original resume (Summary, Technical Skills, Experience, Education, Projects, Certifications, Training, etc.) MUST also appear in the tailored output. Map them to the closest matching fields in the JSON schema. No section may be removed entirely, regardless of how relevant it seems to the target job.
+3. TRIM AND REORDER, DO NOT DELETE: Within each section, you may reorder items (most relevant first), trim a long list down to the most relevant few items (but always keep at least one item per section if the original had any), and reword bullets to mirror the job description's language (without hallucinating). De-emphasize less relevant items by moving them later rather than removing them completely.
+4. ATS-FRIENDLY HEADERS: Use standard, ATS-recognized section headers (e.g. "Experience", "Education", "Skills", "Summary"). Do not use stylized or creative alternatives, even if the original resume did.
+5. SIMPLE FORMATTING: Do not generate content that implies tables, columns, or graphical layout (e.g., no pipe-separated multi-column text, no ASCII dividers). The text should be simple and linear.
+6. HONEST KEYWORD ALIGNMENT: Prioritize aligning your wording with the job description's explicit keywords and phrasing, but ONLY where that keyword genuinely reflects something already present in the original resume. Do not add unearned keywords.`,
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
