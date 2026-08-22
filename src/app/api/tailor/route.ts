@@ -7,8 +7,70 @@ const responseSchema: Schema = {
   type: SchemaType.OBJECT,
   properties: {
     tailored_resume: {
-      type: SchemaType.STRING,
-      description: "The full rewritten, tailored resume (formatted and readable).",
+      type: SchemaType.OBJECT,
+      description: "The full rewritten, tailored resume formatted as a structured object.",
+      properties: {
+        name: { type: SchemaType.STRING },
+        contact_info: {
+          type: SchemaType.ARRAY,
+          items: { type: SchemaType.STRING },
+          description: "List of contact details (e.g. location, phone, email, LinkedIn).",
+        },
+        summary: { type: SchemaType.STRING },
+        skills: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              category: { type: SchemaType.STRING, description: "E.g., Languages, Frameworks, Tools" },
+              items: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+            },
+            required: ["category", "items"]
+          }
+        },
+        experience: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              title: { type: SchemaType.STRING },
+              company: { type: SchemaType.STRING },
+              location: { type: SchemaType.STRING },
+              dates: { type: SchemaType.STRING },
+              bullets: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+            },
+            required: ["title", "company", "dates", "bullets"]
+          }
+        },
+        education: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              degree: { type: SchemaType.STRING },
+              institution: { type: SchemaType.STRING },
+              location: { type: SchemaType.STRING },
+              dates: { type: SchemaType.STRING },
+              details: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING }, description: "Optional honors, GPA, etc." }
+            },
+            required: ["degree", "institution", "dates"]
+          }
+        },
+        projects: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              name: { type: SchemaType.STRING },
+              technologies: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+              dates: { type: SchemaType.STRING },
+              bullets: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+            },
+            required: ["name", "bullets"]
+          }
+        }
+      },
+      required: ["name", "contact_info", "experience", "education"]
     },
     cover_letter: {
       type: SchemaType.STRING,
@@ -58,7 +120,7 @@ This is a strict safety constraint. Do not add anything new. Only reframe what i
       },
     });
 
-    const prompt = `Please tailor my resume for the following job description.
+    const prompt = `Please tailor my resume for the following job description. Ensure the output is formatted according to the schema.
 
 --- ORIGINAL RESUME ---
 ${originalResume}
