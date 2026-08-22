@@ -343,15 +343,45 @@ export default function Home() {
               {/* Copy/Download Actions */}
               <div className="flex justify-end gap-3 mb-6">
                 {activeTab !== "changes" && (
-                  <button
-                    onClick={() => {
-                      const text = activeTab === "resume" ? formatResumeToText(result.tailored_resume) : result.cover_letter;
-                      downloadTxt(text, `${activeTab}.txt`);
-                    }}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#333945] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
-                  >
-                    <Download className="w-4 h-4" /> Download
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          let blob: Blob;
+                          if (activeTab === "resume") {
+                            const { generateResumeDocx } = await import("@/utils/docxGenerator");
+                            blob = await generateResumeDocx(result.tailored_resume);
+                          } else {
+                            const { generateCoverLetterDocx } = await import("@/utils/docxGenerator");
+                            blob = await generateCoverLetterDocx(result.cover_letter);
+                          }
+                          const url = URL.createObjectURL(blob);
+                          const element = document.createElement("a");
+                          element.href = url;
+                          element.download = `${activeTab}.docx`;
+                          document.body.appendChild(element);
+                          element.click();
+                          document.body.removeChild(element);
+                          URL.revokeObjectURL(url);
+                        } catch (err) {
+                          console.error("Failed to generate DOCX:", err);
+                          alert("Failed to generate DOCX file.");
+                        }
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#333945] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
+                    >
+                      <Download className="w-4 h-4" /> Download .docx
+                    </button>
+                    <button
+                      onClick={() => {
+                        const text = activeTab === "resume" ? formatResumeToText(result.tailored_resume) : result.cover_letter;
+                        downloadTxt(text, `${activeTab}.txt`);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#333945] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
+                    >
+                      <Download className="w-4 h-4" /> Download .txt
+                    </button>
+                  </div>
                 )}
                 <button
                   onClick={() => {
