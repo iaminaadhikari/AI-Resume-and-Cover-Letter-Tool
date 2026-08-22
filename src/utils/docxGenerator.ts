@@ -165,11 +165,14 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
       exp.bullets.forEach((bullet) => {
         children.push(
           new Paragraph({
-            text: bullet,
             bullet: { level: 0 },
-            size: FONT_SIZE,
-            font: FONT_FAMILY,
-            style: "Normal",
+            children: [
+              new TextRun({
+                text: bullet,
+                size: FONT_SIZE,
+                font: FONT_FAMILY,
+              }),
+            ],
           })
         );
       });
@@ -212,11 +215,14 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
         edu.details.forEach((detail) => {
           children.push(
             new Paragraph({
-              text: detail,
               bullet: { level: 0 },
-              size: FONT_SIZE,
-              font: FONT_FAMILY,
-              style: "Normal",
+              children: [
+                new TextRun({
+                  text: detail,
+                  size: FONT_SIZE,
+                  font: FONT_FAMILY,
+                }),
+              ],
             })
           );
         });
@@ -252,11 +258,14 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
       proj.bullets.forEach((bullet) => {
         children.push(
           new Paragraph({
-            text: bullet,
             bullet: { level: 0 },
-            size: FONT_SIZE,
-            font: FONT_FAMILY,
-            style: "Normal",
+            children: [
+              new TextRun({
+                text: bullet,
+                size: FONT_SIZE,
+                font: FONT_FAMILY,
+              }),
+            ],
           })
         );
       });
