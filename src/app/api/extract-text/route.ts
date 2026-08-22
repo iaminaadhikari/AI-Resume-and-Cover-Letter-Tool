@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import mammoth from "mammoth";
-import pdfParse from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
 
     if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
       try {
-        const pdfData = await pdfParse(buffer);
+        const parser = new PDFParse(buffer);
+        const pdfData = await parser.getText();
         text = pdfData.text;
       } catch (e: any) {
         throw new Error("Failed to parse PDF. It might be scanned or image-only.");
