@@ -34,6 +34,7 @@ interface StructuredResume {
 
 export default function Home() {
   const [originalResume, setOriginalResume] = useState("");
+  const [styleProfile, setStyleProfile] = useState<any>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -227,6 +228,9 @@ export default function Home() {
                       if (!res.ok) throw new Error(data.error || "Failed to extract text");
                       
                       setOriginalResume(data.text);
+                      if (data.styleProfile) {
+                        setStyleProfile(data.styleProfile);
+                      }
                     } catch (err: any) {
                       setError(err.message || "Failed to parse file. Please paste text instead.");
                     } finally {
@@ -356,10 +360,10 @@ export default function Home() {
                           let blob: Blob;
                           if (activeTab === "resume") {
                             const { generateResumeDocx } = await import("@/utils/docxGenerator");
-                            blob = await generateResumeDocx(result.tailored_resume);
+                            blob = await generateResumeDocx(result.tailored_resume, styleProfile);
                           } else {
                             const { generateCoverLetterDocx } = await import("@/utils/docxGenerator");
-                            blob = await generateCoverLetterDocx(result.cover_letter);
+                            blob = await generateCoverLetterDocx(result.cover_letter, styleProfile);
                           }
                           const url = URL.createObjectURL(blob);
                           const element = document.createElement("a");
@@ -407,10 +411,10 @@ export default function Home() {
               {/* Text Content */}
               <div className="text-gray-800 dark:text-[#F1F1F3] max-w-none">
                 {activeTab === "resume" && (
-                  <div className="font-sans">
+                  <div className="font-sans" style={{ fontFamily: styleProfile?.bodyFont || undefined }}>
                     {/* Header: Name and Contact Info */}
                     <div className="text-center mb-6">
-                      <h2 className="text-2xl font-bold uppercase mb-2">{result.tailored_resume.name}</h2>
+                      <h2 className="text-2xl font-bold uppercase mb-2" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>{result.tailored_resume.name}</h2>
                       <p className="text-sm text-gray-600 dark:text-gray-400 flex flex-wrap justify-center gap-x-2 gap-y-1">
                         {result.tailored_resume.contact_info.map((info, idx) => (
                           <span key={idx}>
@@ -424,7 +428,7 @@ export default function Home() {
                     {/* Summary */}
                     {result.tailored_resume.summary && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Summary</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>Summary</h3>
                         <p className="text-sm leading-relaxed">{result.tailored_resume.summary}</p>
                       </div>
                     )}
@@ -432,7 +436,7 @@ export default function Home() {
                     {/* Skills */}
                     {result.tailored_resume.skills && result.tailored_resume.skills.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Technical Skills</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>Technical Skills</h3>
                         <ul className="text-sm space-y-1">
                           {result.tailored_resume.skills.map((skill, idx) => (
                             <li key={idx}>
@@ -446,7 +450,7 @@ export default function Home() {
                     {/* Experience */}
                     {result.tailored_resume.experience && result.tailored_resume.experience.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Experience</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>Experience</h3>
                         <div className="space-y-4">
                           {result.tailored_resume.experience.map((exp, idx) => (
                             <div key={idx}>
@@ -471,7 +475,7 @@ export default function Home() {
                     {/* Education */}
                     {result.tailored_resume.education && result.tailored_resume.education.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Education</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>Education</h3>
                         <div className="space-y-3">
                           {result.tailored_resume.education.map((edu, idx) => (
                             <div key={idx}>
@@ -498,7 +502,7 @@ export default function Home() {
                     {/* Projects */}
                     {result.tailored_resume.projects && result.tailored_resume.projects.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Projects</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>Projects</h3>
                         <div className="space-y-4">
                           {result.tailored_resume.projects.map((proj, idx) => (
                             <div key={idx}>

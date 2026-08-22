@@ -1,5 +1,12 @@
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
 
+export interface StyleProfile {
+  headingColor?: string | null;
+  headingFont?: string | null;
+  bodyFont?: string | null;
+  bodySize?: number | null;
+}
+
 export interface StructuredResume {
   name: string;
   contact_info: string[];
@@ -27,12 +34,12 @@ export interface StructuredResume {
   }[];
 }
 
-const FONT_FAMILY = "Calibri";
-const FONT_SIZE = 22; // 11pt (half-points)
-const HEADER_COLOR = "333333";
-
-export async function generateResumeDocx(resume: StructuredResume): Promise<Blob> {
+export async function generateResumeDocx(resume: StructuredResume, styleProfile?: StyleProfile | null): Promise<Blob> {
   const children: Paragraph[] = [];
+  const FONT_FAMILY = styleProfile?.bodyFont || styleProfile?.headingFont || "Calibri";
+  const HEADER_FONT = styleProfile?.headingFont || FONT_FAMILY;
+  const FONT_SIZE = styleProfile?.bodySize ? styleProfile.bodySize * 2 : 22; // 11pt default
+  const HEADER_COLOR = styleProfile?.headingColor || "333333";
 
   // Name
   children.push(
@@ -43,7 +50,8 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
           text: resume.name.toUpperCase(),
           bold: true,
           size: 32, // 16pt
-          font: FONT_FAMILY,
+          font: HEADER_FONT,
+          color: HEADER_COLOR,
         }),
       ],
       spacing: { after: 120 },
@@ -75,7 +83,7 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
             text: title.toUpperCase(),
             bold: true,
             size: 24, // 12pt
-            font: FONT_FAMILY,
+            font: HEADER_FONT,
             color: HEADER_COLOR,
           }),
         ],
@@ -131,7 +139,6 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
   if (resume.experience && resume.experience.length > 0) {
     addSectionHeader("Experience");
     resume.experience.forEach((exp) => {
-      // Title and Dates
       children.push(
         new Paragraph({
           spacing: { before: 120, after: 40 },
@@ -147,7 +154,6 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
           ],
         })
       );
-      // Company and Location
       children.push(
         new Paragraph({
           spacing: { after: 120 },
@@ -161,7 +167,6 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
           ],
         })
       );
-      // Bullets
       exp.bullets.forEach((bullet) => {
         children.push(
           new Paragraph({
@@ -278,7 +283,7 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
         properties: {
           page: {
             margin: {
-              top: 720,    // 0.5 inch
+              top: 720,
               bottom: 720,
               left: 720,
               right: 720,
@@ -293,7 +298,10 @@ export async function generateResumeDocx(resume: StructuredResume): Promise<Blob
   return await Packer.toBlob(doc);
 }
 
-export async function generateCoverLetterDocx(content: string): Promise<Blob> {
+export async function generateCoverLetterDocx(content: string, styleProfile?: StyleProfile | null): Promise<Blob> {
+  const FONT_FAMILY = styleProfile?.bodyFont || styleProfile?.headingFont || "Calibri";
+  const FONT_SIZE = styleProfile?.bodySize ? styleProfile.bodySize * 2 : 22;
+
   const paragraphs = content.split("\n").map((line) => {
     return new Paragraph({
       children: [
@@ -313,7 +321,7 @@ export async function generateCoverLetterDocx(content: string): Promise<Blob> {
         properties: {
           page: {
             margin: {
-              top: 1440,   // 1 inch
+              top: 1440,
               bottom: 1440,
               left: 1440,
               right: 1440,
