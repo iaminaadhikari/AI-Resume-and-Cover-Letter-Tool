@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,12 +17,11 @@ export async function POST(req: NextRequest) {
 
     if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
       try {
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const parser = new PDFParse(uint8Array);
-        const pdfData = await parser.getText();
+        const pdfData = await pdfParse(buffer);
         text = pdfData.text;
       } catch (e: any) {
-        throw new Error("Failed to parse PDF. It might be scanned or image-only.");
+        console.error("Actual PDF parsing error:", e);
+        throw new Error("Failed to parse PDF: " + (e.message || "Unknown error"));
       }
     } else if (file.name.toLowerCase().endsWith(".docx") || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
       try {
