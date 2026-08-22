@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI, Schema, Type } from "@google/generative-ai";
+import { GoogleGenerativeAI, Schema, SchemaType } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const responseSchema: Schema = {
-  type: Type.OBJECT,
+  type: SchemaType.OBJECT,
   properties: {
     tailored_resume: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: "The full rewritten, tailored resume (formatted and readable).",
     },
     cover_letter: {
-      type: Type.STRING,
+      type: SchemaType.STRING,
       description: "A matching cover letter draft.",
     },
     changes_summary: {
-      type: Type.ARRAY,
+      type: SchemaType.ARRAY,
       items: {
-        type: Type.STRING,
+        type: SchemaType.STRING,
       },
       description: "A short 'What Changed' summary — 3 to 5 bullet points explaining the key edits made and why.",
     },
