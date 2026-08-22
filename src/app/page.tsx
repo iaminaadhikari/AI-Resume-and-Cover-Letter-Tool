@@ -172,15 +172,15 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       <div className="max-w-5xl px-4 py-12 mx-auto sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl mb-4">
             Turn any resume into a perfect match for any job <br className="hidden md:block"/>
-            <span className="text-blue-600 dark:text-blue-500">— in under a minute</span>
+            <span className="text-teal-600 dark:text-teal-500">— in under a minute</span>
           </h1>
-          <p className="max-w-2xl mx-auto text-xl text-zinc-600 dark:text-zinc-400">
+          <p className="max-w-2xl mx-auto text-xl text-slate-600 dark:text-slate-400">
             Stop manually rewriting your resume for every application. Paste your current resume and the job description, and we'll do the rest.
           </p>
         </div>
@@ -229,7 +229,7 @@ export default function Home() {
                 <button
                   type="button"
                   disabled={isUploading}
-                  className="text-xs font-medium px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1"
+                  className="text-xs font-medium px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1"
                 >
                   {isUploading ? (
                     <><Loader2 className="w-3 h-3 animate-spin" /> Extracting...</>
@@ -244,7 +244,7 @@ export default function Home() {
               value={originalResume}
               onChange={(e) => setOriginalResume(e.target.value)}
               placeholder="Paste your plain text resume here, or upload a file..."
-              className="flex-1 min-h-[300px] p-4 border border-zinc-300 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none resize-y"
+              className="flex-1 min-h-[300px] p-4 border border-slate-300 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 focus:ring-2 focus:ring-teal-500 outline-none resize-y"
             />
           </div>
           <div className="flex flex-col">
@@ -254,7 +254,7 @@ export default function Home() {
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the job posting requirements and details here..."
-              className="flex-1 min-h-[300px] p-4 border border-zinc-300 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none resize-y"
+              className="flex-1 min-h-[300px] p-4 border border-slate-300 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 focus:ring-2 focus:ring-teal-500 outline-none resize-y"
             />
           </div>
         </div>
@@ -271,7 +271,7 @@ export default function Home() {
           <button
             onClick={handleTailor}
             disabled={isLoading}
-            className="flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white transition-all bg-blue-600 rounded-full hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20"
+            className="flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white transition-all bg-teal-600 rounded-full hover:bg-teal-700 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-teal-600/20"
           >
             {isLoading ? (
               <>
@@ -286,7 +286,7 @@ export default function Home() {
             )}
           </button>
           
-          <div className="mt-4 text-sm text-zinc-500 font-medium">
+          <div className="mt-4 text-sm text-slate-500 font-medium">
             {freeUsesRemaining > 0 ? (
               <span>{freeUsesRemaining} of 2 free tailors remaining</span>
             ) : (
@@ -297,16 +297,16 @@ export default function Home() {
 
         {/* Results Section */}
         {result && (
-          <div className="mt-8 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
+          <div className="mt-8 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
             
             {/* Tabs */}
-            <div className="flex border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto">
+            <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
               <button
                 onClick={() => setActiveTab("resume")}
                 className={`flex-1 py-4 px-6 font-medium text-center whitespace-nowrap transition-colors ${
                   activeTab === "resume" 
-                    ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400" 
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    ? "border-b-2 border-teal-500 text-teal-600 dark:text-teal-400" 
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
                 Tailored Resume
@@ -315,8 +315,8 @@ export default function Home() {
                 onClick={() => setActiveTab("cover_letter")}
                 className={`flex-1 py-4 px-6 font-medium text-center whitespace-nowrap transition-colors ${
                   activeTab === "cover_letter" 
-                    ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400" 
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    ? "border-b-2 border-teal-500 text-teal-600 dark:text-teal-400" 
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
                 Cover Letter
@@ -325,8 +325,8 @@ export default function Home() {
                 onClick={() => setActiveTab("changes")}
                 className={`flex-1 py-4 px-6 font-medium text-center whitespace-nowrap transition-colors ${
                   activeTab === "changes" 
-                    ? "border-b-2 border-blue-500 text-blue-600 dark:text-blue-400" 
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    ? "border-b-2 border-teal-500 text-teal-600 dark:text-teal-400" 
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
                 What Changed
@@ -343,7 +343,7 @@ export default function Home() {
                       const text = activeTab === "resume" ? formatResumeToText(result.tailored_resume) : result.cover_letter;
                       downloadTxt(text, `${activeTab}.txt`);
                     }}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-zinc-200 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
                     <Download className="w-4 h-4" /> Download
                   </button>
@@ -357,20 +357,20 @@ export default function Home() {
                         : result.changes_summary.join("\n- ");
                     copyToClipboard(text);
                   }}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-zinc-200 dark:border-zinc-700 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   <Copy className="w-4 h-4" /> Copy
                 </button>
               </div>
 
               {/* Text Content */}
-              <div className="text-zinc-800 dark:text-zinc-200 max-w-none">
+              <div className="text-slate-800 dark:text-slate-200 max-w-none">
                 {activeTab === "resume" && (
                   <div className="font-sans">
                     {/* Header: Name and Contact Info */}
                     <div className="text-center mb-6">
                       <h2 className="text-2xl font-bold uppercase mb-2">{result.tailored_resume.name}</h2>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 flex flex-wrap justify-center gap-x-2 gap-y-1">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 flex flex-wrap justify-center gap-x-2 gap-y-1">
                         {result.tailored_resume.contact_info.map((info, idx) => (
                           <span key={idx}>
                             {info}
@@ -383,7 +383,7 @@ export default function Home() {
                     {/* Summary */}
                     {result.tailored_resume.summary && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-bold uppercase text-blue-700 dark:text-blue-400 border-b border-zinc-200 dark:border-zinc-800 pb-1 mb-3">Summary</h3>
+                        <h3 className="text-lg font-bold uppercase text-teal-700 dark:text-teal-400 border-b border-slate-200 dark:border-slate-800 pb-1 mb-3">Summary</h3>
                         <p className="text-sm leading-relaxed">{result.tailored_resume.summary}</p>
                       </div>
                     )}
@@ -391,7 +391,7 @@ export default function Home() {
                     {/* Skills */}
                     {result.tailored_resume.skills && result.tailored_resume.skills.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-bold uppercase text-blue-700 dark:text-blue-400 border-b border-zinc-200 dark:border-zinc-800 pb-1 mb-3">Technical Skills</h3>
+                        <h3 className="text-lg font-bold uppercase text-teal-700 dark:text-teal-400 border-b border-slate-200 dark:border-slate-800 pb-1 mb-3">Technical Skills</h3>
                         <ul className="text-sm space-y-1">
                           {result.tailored_resume.skills.map((skill, idx) => (
                             <li key={idx}>
@@ -405,13 +405,13 @@ export default function Home() {
                     {/* Experience */}
                     {result.tailored_resume.experience && result.tailored_resume.experience.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-bold uppercase text-blue-700 dark:text-blue-400 border-b border-zinc-200 dark:border-zinc-800 pb-1 mb-3">Experience</h3>
+                        <h3 className="text-lg font-bold uppercase text-teal-700 dark:text-teal-400 border-b border-slate-200 dark:border-slate-800 pb-1 mb-3">Experience</h3>
                         <div className="space-y-4">
                           {result.tailored_resume.experience.map((exp, idx) => (
                             <div key={idx}>
                               <div className="flex justify-between items-baseline mb-1">
                                 <h4 className="font-bold text-base">{exp.title}</h4>
-                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 whitespace-nowrap ml-4">{exp.dates}</span>
+                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap ml-4">{exp.dates}</span>
                               </div>
                               <div className="text-sm font-medium italic mb-2">
                                 {exp.company}{exp.location ? `, ${exp.location}` : ""}
@@ -430,13 +430,13 @@ export default function Home() {
                     {/* Education */}
                     {result.tailored_resume.education && result.tailored_resume.education.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-bold uppercase text-blue-700 dark:text-blue-400 border-b border-zinc-200 dark:border-zinc-800 pb-1 mb-3">Education</h3>
+                        <h3 className="text-lg font-bold uppercase text-teal-700 dark:text-teal-400 border-b border-slate-200 dark:border-slate-800 pb-1 mb-3">Education</h3>
                         <div className="space-y-3">
                           {result.tailored_resume.education.map((edu, idx) => (
                             <div key={idx}>
                               <div className="flex justify-between items-baseline mb-1">
                                 <h4 className="font-bold text-base">{edu.degree}</h4>
-                                <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 whitespace-nowrap ml-4">{edu.dates}</span>
+                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap ml-4">{edu.dates}</span>
                               </div>
                               <div className="text-sm font-medium italic mb-1">
                                 {edu.institution}{edu.location ? `, ${edu.location}` : ""}
@@ -457,7 +457,7 @@ export default function Home() {
                     {/* Projects */}
                     {result.tailored_resume.projects && result.tailored_resume.projects.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-lg font-bold uppercase text-blue-700 dark:text-blue-400 border-b border-zinc-200 dark:border-zinc-800 pb-1 mb-3">Projects</h3>
+                        <h3 className="text-lg font-bold uppercase text-teal-700 dark:text-teal-400 border-b border-slate-200 dark:border-slate-800 pb-1 mb-3">Projects</h3>
                         <div className="space-y-4">
                           {result.tailored_resume.projects.map((proj, idx) => (
                             <div key={idx}>
@@ -466,7 +466,7 @@ export default function Home() {
                                   {proj.name}
                                   {proj.technologies && <span className="font-normal text-sm italic ml-2">| {proj.technologies.join(", ")}</span>}
                                 </h4>
-                                {proj.dates && <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 whitespace-nowrap ml-4">{proj.dates}</span>}
+                                {proj.dates && <span className="text-sm font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap ml-4">{proj.dates}</span>}
                               </div>
                               <ul className="list-disc list-outside ml-4 space-y-1 text-sm mt-1">
                                 {proj.bullets.map((bullet, bIdx) => (
@@ -489,7 +489,7 @@ export default function Home() {
                   <ul className="space-y-3">
                     {result.changes_summary.map((change, i) => (
                       <li key={i} className="flex gap-3 text-base">
-                        <ChevronRight className="w-5 h-5 flex-shrink-0 text-blue-500 mt-0.5" />
+                        <ChevronRight className="w-5 h-5 flex-shrink-0 text-teal-500 mt-0.5" />
                         <span>{change}</span>
                       </li>
                     ))}
@@ -506,19 +506,19 @@ export default function Home() {
             <h2 className="text-2xl font-bold text-center mb-12">How it works</h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">1</div>
+                <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">1</div>
                 <h3 className="font-semibold text-lg mb-2">Paste Content</h3>
-                <p className="text-zinc-500 dark:text-zinc-400 text-sm">Paste your existing resume and the target job description.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Paste your existing resume and the target job description.</p>
               </div>
               <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">2</div>
+                <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">2</div>
                 <h3 className="font-semibold text-lg mb-2">AI Optimization</h3>
-                <p className="text-zinc-500 dark:text-zinc-400 text-sm">We analyze the keywords and reframe your true experience to match the role.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">We analyze the keywords and reframe your true experience to match the role.</p>
               </div>
               <div className="flex flex-col items-center text-center">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">3</div>
+                <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">3</div>
                 <h3 className="font-semibold text-lg mb-2">Apply & Win</h3>
-                <p className="text-zinc-500 dark:text-zinc-400 text-sm">Download your tailored resume and cover letter, ready to submit.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Download your tailored resume and cover letter, ready to submit.</p>
               </div>
             </div>
           </div>
