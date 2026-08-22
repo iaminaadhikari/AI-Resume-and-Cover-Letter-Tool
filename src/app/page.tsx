@@ -311,7 +311,7 @@ export default function Home() {
                 className={`flex-1 py-4 px-6 font-medium text-center whitespace-nowrap transition-colors ${
                   activeTab === "resume" 
                     ? "border-b-2 border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400" 
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-[#F1F1F3]"
+                    : "text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
               >
                 Tailored Resume
@@ -321,7 +321,7 @@ export default function Home() {
                 className={`flex-1 py-4 px-6 font-medium text-center whitespace-nowrap transition-colors ${
                   activeTab === "cover_letter" 
                     ? "border-b-2 border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400" 
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-[#F1F1F3]"
+                    : "text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
               >
                 Cover Letter
@@ -331,7 +331,7 @@ export default function Home() {
                 className={`flex-1 py-4 px-6 font-medium text-center whitespace-nowrap transition-colors ${
                   activeTab === "changes" 
                     ? "border-b-2 border-indigo-600 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400" 
-                    : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-[#F1F1F3]"
+                    : "text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
               >
                 What Changed
