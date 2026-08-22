@@ -14,7 +14,7 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl overflow-hidden bg-white dark:bg-[#1C1F26] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#2A2E37]">
+      <div className="relative w-full max-w-4xl overflow-hidden bg-white dark:bg-[#20242D] rounded-2xl shadow-2xl border border-gray-200 dark:border-[#333945]">
         <button
           onClick={onClose}
           className="absolute p-2 text-gray-500 dark:text-gray-400 top-4 right-4 hover:text-gray-800 dark:hover:text-gray-200"
@@ -33,7 +33,7 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
 
           <div className="grid gap-8 md:grid-cols-2">
             {/* Credit Pack */}
-            <div className="flex flex-col p-8 text-left border border-gray-200 dark:border-[#2A2E37] rounded-2xl bg-[#F5F5FA] dark:bg-[#13151A]/50">
+            <div className="flex flex-col p-8 text-left border border-gray-200 dark:border-[#333945] rounded-2xl bg-[#F5F5FA] dark:bg-[#13151A]/50">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Credit Pack</h3>
               <div className="mt-4 mb-8">
                 <span className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white">$15</span>
@@ -51,7 +51,7 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
               </ul>
               <a
                 href={creditsUrl}
-                className="block w-full px-4 py-3 mt-8 font-medium text-center text-gray-700 dark:text-gray-300 transition-colors bg-white dark:bg-[#1C1F26] border border-gray-200 dark:border-[#2A2E37] rounded-full hover:bg-gray-50 dark:hover:bg-[#2A2E37] shadow-sm"
+                className="block w-full px-4 py-3 mt-8 font-medium text-center text-gray-700 dark:text-gray-300 transition-colors bg-white dark:bg-[#20242D] border border-gray-200 dark:border-[#333945] rounded-full hover:bg-gray-50 dark:hover:bg-[#2A2E37] shadow-sm"
               >
                 Buy Credits
               </a>

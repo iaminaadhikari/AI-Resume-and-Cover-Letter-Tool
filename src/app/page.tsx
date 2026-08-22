@@ -249,7 +249,7 @@ export default function Home() {
               value={originalResume}
               onChange={(e) => setOriginalResume(e.target.value)}
               placeholder="Paste your plain text resume here, or upload a file..."
-              className="flex-1 min-h-[300px] p-4 border border-gray-200 dark:border-[#2A2E37] rounded-xl bg-white dark:bg-[#1C1F26] focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 outline-none resize-y shadow-sm"
+              className="flex-1 min-h-[300px] p-4 border border-gray-200 dark:border-[#333945] rounded-xl bg-white dark:bg-[#20242D] focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 outline-none resize-y shadow-sm"
             />
           </div>
           <div className="flex flex-col">
@@ -259,7 +259,7 @@ export default function Home() {
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the job posting requirements and details here..."
-              className="flex-1 min-h-[300px] p-4 border border-gray-200 dark:border-[#2A2E37] rounded-xl bg-white dark:bg-[#1C1F26] focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 outline-none resize-y shadow-sm"
+              className="flex-1 min-h-[300px] p-4 border border-gray-200 dark:border-[#333945] rounded-xl bg-white dark:bg-[#20242D] focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 outline-none resize-y shadow-sm"
             />
           </div>
         </div>
@@ -302,10 +302,10 @@ export default function Home() {
 
         {/* Results Section */}
         {result && (
-          <div className="mt-8 border border-gray-200 dark:border-[#2A2E37] rounded-2xl bg-white dark:bg-[#1C1F26] overflow-hidden shadow-sm">
+          <div className="mt-8 border border-gray-200 dark:border-[#333945] rounded-2xl bg-white dark:bg-[#20242D] overflow-hidden shadow-sm">
             
             {/* Tabs */}
-            <div className="flex border-b border-gray-200 dark:border-[#2A2E37] overflow-x-auto">
+            <div className="flex border-b border-gray-200 dark:border-[#333945] overflow-x-auto">
               <button
                 onClick={() => setActiveTab("resume")}
                 className={`flex-1 py-4 px-6 font-medium text-center whitespace-nowrap transition-colors ${
@@ -348,7 +348,7 @@ export default function Home() {
                       const text = activeTab === "resume" ? formatResumeToText(result.tailored_resume) : result.cover_letter;
                       downloadTxt(text, `${activeTab}.txt`);
                     }}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#2A2E37] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#333945] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
                   >
                     <Download className="w-4 h-4" /> Download
                   </button>
@@ -362,7 +362,7 @@ export default function Home() {
                         : result.changes_summary.join("\n- ");
                     copyToClipboard(text);
                   }}
-                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#2A2E37] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#333945] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
                 >
                   <Copy className="w-4 h-4" /> Copy
                 </button>
@@ -388,7 +388,7 @@ export default function Home() {
                     {/* Summary */}
                     {result.tailored_resume.summary && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#2A2E37] pb-1 mb-3">Summary</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Summary</h3>
                         <p className="text-sm leading-relaxed">{result.tailored_resume.summary}</p>
                       </div>
                     )}
@@ -396,7 +396,7 @@ export default function Home() {
                     {/* Skills */}
                     {result.tailored_resume.skills && result.tailored_resume.skills.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#2A2E37] pb-1 mb-3">Technical Skills</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Technical Skills</h3>
                         <ul className="text-sm space-y-1">
                           {result.tailored_resume.skills.map((skill, idx) => (
                             <li key={idx}>
@@ -410,7 +410,7 @@ export default function Home() {
                     {/* Experience */}
                     {result.tailored_resume.experience && result.tailored_resume.experience.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#2A2E37] pb-1 mb-3">Experience</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Experience</h3>
                         <div className="space-y-4">
                           {result.tailored_resume.experience.map((exp, idx) => (
                             <div key={idx}>
@@ -435,7 +435,7 @@ export default function Home() {
                     {/* Education */}
                     {result.tailored_resume.education && result.tailored_resume.education.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#2A2E37] pb-1 mb-3">Education</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Education</h3>
                         <div className="space-y-3">
                           {result.tailored_resume.education.map((edu, idx) => (
                             <div key={idx}>
@@ -462,7 +462,7 @@ export default function Home() {
                     {/* Projects */}
                     {result.tailored_resume.projects && result.tailored_resume.projects.length > 0 && (
                       <div className="mb-6">
-                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#2A2E37] pb-1 mb-3">Projects</h3>
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3">Projects</h3>
                         <div className="space-y-4">
                           {result.tailored_resume.projects.map((proj, idx) => (
                             <div key={idx}>
