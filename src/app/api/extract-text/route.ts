@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
 
     if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
       try {
-        const parser = new PDFParse(buffer);
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const parser = new PDFParse(uint8Array);
         const pdfData = await parser.getText();
         text = pdfData.text;
       } catch (e: any) {
