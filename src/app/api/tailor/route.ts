@@ -201,7 +201,7 @@ Please regenerate the JSON output and ensure you INCLUDE these sections. You can
           const match = originalResume.match(regex);
           
           // Truncate to a reasonable length to avoid injecting the entire rest of the resume
-          let originalContent = match ? match[0].trim() : \`(Original \${sec} content preserved here)\`;
+          let originalContent = match ? match[0].trim() : `(Original ${sec} content preserved here)`;
           if (originalContent.length > 1000) {
              originalContent = originalContent.substring(0, 1000) + "...";
           }
