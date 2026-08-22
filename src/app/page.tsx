@@ -35,6 +35,7 @@ export default function Home() {
   const [originalResume, setOriginalResume] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
   
   const [result, setResult] = useState<{
@@ -187,12 +188,62 @@ export default function Home() {
         {/* Inputs Section */}
         <div className="grid gap-6 md:grid-cols-2 mb-8">
           <div className="flex flex-col">
-            <label htmlFor="resume" className="mb-2 font-medium">1. Your Existing Resume</label>
+            <div className="flex justify-between items-end mb-2">
+              <label htmlFor="resume" className="font-medium">1. Your Existing Resume</label>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="resume-upload"
+                  accept=".pdf,.docx"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    setIsUploading(true);
+                    setError("");
+                    
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    
+                    try {
+                      const res = await fetch("/api/extract-text", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || "Failed to extract text");
+                      
+                      setOriginalResume(data.text);
+                    } catch (err: any) {
+                      setError(err.message || "Failed to parse file. Please paste text instead.");
+                    } finally {
+                      setIsUploading(false);
+                      // reset input
+                      e.target.value = '';
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={isUploading}
+                />
+                <button
+                  type="button"
+                  disabled={isUploading}
+                  className="text-xs font-medium px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center gap-1"
+                >
+                  {isUploading ? (
+                    <><Loader2 className="w-3 h-3 animate-spin" /> Extracting...</>
+                  ) : (
+                    <>Upload .pdf / .docx</>
+                  )}
+                </button>
+              </div>
+            </div>
             <textarea
               id="resume"
               value={originalResume}
               onChange={(e) => setOriginalResume(e.target.value)}
-              placeholder="Paste your plain text resume here..."
+              placeholder="Paste your plain text resume here, or upload a file..."
               className="flex-1 min-h-[300px] p-4 border border-zinc-300 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-blue-500 outline-none resize-y"
             />
           </div>
