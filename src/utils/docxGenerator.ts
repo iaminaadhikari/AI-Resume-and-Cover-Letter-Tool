@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ExternalHyperlink } from "docx";
 
 export interface StyleProfile {
   headingColor?: string | null;
@@ -9,7 +9,13 @@ export interface StyleProfile {
 
 export interface StructuredResume {
   name: string;
-  contact_info: string[];
+  contact_info: {
+    email?: string;
+    phone?: string;
+    location?: string;
+    linkedin_url?: string;
+    github_url?: string;
+  };
   summary?: string;
   skills?: { category: string; items: string[] }[];
   experience: {
@@ -58,39 +64,60 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
     })
   );
 
-  const getDocxIcon = (info: string) => {
-    const lower = info.toLowerCase();
-    if (lower.includes("@") || lower.includes("email")) return "✉ ";
-    if (lower.includes("linkedin")) return "🔗 ";
-    if (lower.includes("github")) return "💻 ";
-    if (lower.match(/[0-9]{3}/) && (lower.includes("-") || lower.includes("+") || lower.includes("("))) return "☎ ";
-    return "📍 ";
-  };
+  const contactItems = [];
+  if (resume.contact_info.email) contactItems.push({ type: "email", text: resume.contact_info.email, url: `mailto:${resume.contact_info.email}` });
+  if (resume.contact_info.phone) contactItems.push({ type: "phone", text: resume.contact_info.phone });
+  if (resume.contact_info.location) contactItems.push({ type: "location", text: resume.contact_info.location });
+  if (resume.contact_info.linkedin_url) contactItems.push({ type: "linkedin", text: "LinkedIn", url: resume.contact_info.linkedin_url });
+  if (resume.contact_info.github_url) contactItems.push({ type: "github", text: "GitHub", url: resume.contact_info.github_url });
 
-  const contactRuns = resume.contact_info.map((info, idx) => {
-    const icon = getDocxIcon(info);
-    const textStr = info + (idx < resume.contact_info.length - 1 ? "    |    " : "");
-    return [
-      new TextRun({
-        text: icon,
-        size: 20,
-        font: "Segoe UI Symbol",
-        color: HEADER_COLOR,
-      }),
-      new TextRun({
-        text: textStr,
-        size: 20,
-        font: FONT_FAMILY,
-        color: "555555",
-      }),
-    ];
-  }).flat();
+  const contactChildren: any[] = [];
+  contactItems.forEach((item, idx) => {
+    // Add text or hyperlink
+    if (item.url) {
+      contactChildren.push(
+        new ExternalHyperlink({
+          children: [
+            new TextRun({
+              text: item.text,
+              size: 20,
+              font: FONT_FAMILY,
+              color: HEADER_COLOR, // colored link
+              underline: {},
+            }),
+          ],
+          link: item.url,
+        })
+      );
+    } else {
+      contactChildren.push(
+        new TextRun({
+          text: item.text,
+          size: 20,
+          font: FONT_FAMILY,
+          color: "555555",
+        })
+      );
+    }
+    
+    // Add separator if not last
+    if (idx < contactItems.length - 1) {
+      contactChildren.push(
+        new TextRun({
+          text: "    |    ",
+          size: 20,
+          font: FONT_FAMILY,
+          color: "555555",
+        })
+      );
+    }
+  });
 
   // Contact Info
   children.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      children: contactRuns,
+      children: contactChildren,
       spacing: { after: 240 },
     })
   );
@@ -323,16 +350,16 @@ export async function generateCoverLetterDocx(content: string, styleProfile?: St
   const FONT_FAMILY = styleProfile?.bodyFont || styleProfile?.headingFont || "Calibri";
   const FONT_SIZE = styleProfile?.bodySize ? styleProfile.bodySize * 2 : 22;
 
-  const paragraphs = content.split("\n").map((line) => {
+  const paragraphs = content.split(/\n\s*\n/).filter(Boolean).map((block) => {
     return new Paragraph({
       children: [
         new TextRun({
-          text: line,
+          text: block.trim(),
           size: FONT_SIZE,
           font: FONT_FAMILY,
         }),
       ],
-      spacing: { after: 120 },
+      spacing: { after: 240 }, // 12pt paragraph spacing
     });
   });
 

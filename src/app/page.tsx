@@ -7,7 +7,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface StructuredResume {
   name: string;
-  contact_info: string[];
+  contact_info: {
+    email?: string;
+    phone?: string;
+    location?: string;
+    linkedin_url?: string;
+    github_url?: string;
+  };
   summary?: string;
   skills?: { category: string; items: string[] }[];
   experience: {
@@ -52,13 +58,12 @@ export default function Home() {
   const [freeUsesRemaining, setFreeUsesRemaining] = useState<number>(2);
   const [isPaywallOpen, setIsPaywallOpen] = useState(false);
 
-  const getContactIcon = (info: string) => {
-    const lower = info.toLowerCase();
+  const getContactIcon = (type: string) => {
     const iconProps = { className: "w-4 h-4 mr-1.5", style: { color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined } };
-    if (lower.includes("@") || lower.includes("email")) return <Mail {...iconProps} />;
-    if (lower.includes("linkedin")) return <Link {...iconProps} />;
-    if (lower.includes("github")) return <Code {...iconProps} />;
-    if (lower.match(/[0-9]{3}/) && (lower.includes("-") || lower.includes("+") || lower.includes("("))) return <Phone {...iconProps} />;
+    if (type === "email") return <Mail {...iconProps} />;
+    if (type === "linkedin") return <Link {...iconProps} />;
+    if (type === "github") return <Code {...iconProps} />;
+    if (type === "phone") return <Phone {...iconProps} />;
     return <MapPin {...iconProps} />;
   };
 
@@ -118,7 +123,14 @@ export default function Home() {
 
   const formatResumeToText = (resume: StructuredResume): string => {
     let text = `${resume.name}\n`;
-    text += `${resume.contact_info.join(" | ")}\n\n`;
+    const c = resume.contact_info;
+    const contactParts = [];
+    if (c.email) contactParts.push(c.email);
+    if (c.phone) contactParts.push(c.phone);
+    if (c.location) contactParts.push(c.location);
+    if (c.linkedin_url) contactParts.push(c.linkedin_url);
+    if (c.github_url) contactParts.push(c.github_url);
+    text += `${contactParts.join(" | ")}\n\n`;
 
     if (resume.summary) {
       text += `SUMMARY\n${resume.summary}\n\n`;
@@ -426,12 +438,27 @@ export default function Home() {
                     <div className="text-center mb-6">
                       <h2 className="text-2xl font-bold uppercase mb-2" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>{result.tailored_resume.name}</h2>
                       <p className="text-sm text-gray-600 dark:text-gray-400 flex flex-wrap justify-center gap-x-3 gap-y-2 mt-2">
-                        {result.tailored_resume.contact_info.map((info, idx) => (
-                          <span key={idx} className="flex items-center">
-                            {getContactIcon(info)}
-                            <span>{info}</span>
-                          </span>
-                        ))}
+                        {(() => {
+                          const items = [];
+                          const c = result.tailored_resume.contact_info;
+                          if (c.email) items.push({ type: "email", text: c.email, url: `mailto:${c.email}` });
+                          if (c.phone) items.push({ type: "phone", text: c.phone });
+                          if (c.location) items.push({ type: "location", text: c.location });
+                          if (c.linkedin_url) items.push({ type: "linkedin", text: "LinkedIn", url: c.linkedin_url });
+                          if (c.github_url) items.push({ type: "github", text: "GitHub", url: c.github_url });
+                          return items.map((item, idx) => (
+                            <span key={idx} className="flex items-center">
+                              {getContactIcon(item.type)}
+                              {item.url ? (
+                                <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined }}>
+                                  {item.text}
+                                </a>
+                              ) : (
+                                <span>{item.text}</span>
+                              )}
+                            </span>
+                          ));
+                        })()}
                       </p>
                     </div>
 
@@ -536,9 +563,11 @@ export default function Home() {
                   </div>
                 )}
                 {activeTab === "cover_letter" && (
-                  <pre className="whitespace-pre-wrap font-sans text-base leading-relaxed">
-                    {result.cover_letter}
-                  </pre>
+                  <div className="font-sans text-base leading-relaxed space-y-6">
+                    {result.cover_letter.split(/\n\s*\n/).filter(Boolean).map((para, i) => (
+                      <p key={i}>{para.trim()}</p>
+                    ))}
+                  </div>
                 )}
                 {activeTab === "changes" && (
                   <ul className="space-y-3">

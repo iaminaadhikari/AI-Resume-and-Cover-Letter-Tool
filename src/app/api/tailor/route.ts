@@ -10,12 +10,6 @@ const responseSchema: Schema = {
       type: SchemaType.OBJECT,
       description: "The full rewritten, tailored resume formatted as a structured object.",
       properties: {
-        name: { type: SchemaType.STRING },
-        contact_info: {
-          type: SchemaType.ARRAY,
-          items: { type: SchemaType.STRING },
-          description: "List of contact details (e.g. location, phone, email, LinkedIn).",
-        },
         summary: { type: SchemaType.STRING },
         skills: {
           type: SchemaType.ARRAY,
@@ -70,11 +64,11 @@ const responseSchema: Schema = {
           }
         }
       },
-      required: ["name", "contact_info", "experience", "education"]
+      required: ["experience", "education"]
     },
     cover_letter: {
       type: SchemaType.STRING,
-      description: "A matching cover letter draft.",
+      description: "A matching cover letter draft. Format strictly with double newlines between paragraphs (greeting, 3-4 distinct body paragraphs, sign-off).",
     },
     changes_summary: {
       type: SchemaType.ARRAY,
@@ -123,6 +117,32 @@ export async function POST(req: NextRequest) {
 
     const detectedSections = getDetectedSections(originalResume);
 
+    // 1. Extract contact info separately
+    const contactModel = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction: "Extract the contact information block from this resume. Output valid JSON. Capture exact URLs (e.g. https://linkedin.com/in/name) and emails. Do not fabricate or modify them.",
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            name: { type: SchemaType.STRING },
+            email: { type: SchemaType.STRING },
+            phone: { type: SchemaType.STRING },
+            location: { type: SchemaType.STRING },
+            linkedin_url: { type: SchemaType.STRING },
+            github_url: { type: SchemaType.STRING },
+          },
+          required: ["name"]
+        }
+      }
+    });
+    
+    // We only need the top part of the resume typically, but sending full is fine for flash
+    const contactResult = await contactModel.generateContent(`Extract contact info:\n\n${originalResume.substring(0, 3000)}`);
+    const extractedContact = JSON.parse(contactResult.response.text());
+
+    // 2. Main Tailoring
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       systemInstruction: `You are an expert technical recruiter and resume writer. 
@@ -134,7 +154,8 @@ CRITICAL RULES:
 3. TRIM AND REORDER, DO NOT DELETE: Within each section, you may reorder items (most relevant first), trim a long list down to the most relevant few items (but always keep at least one item per section if the original had any), and reword bullets to mirror the job description's language (without hallucinating).
 4. ATS-FRIENDLY HEADERS: Use standard, ATS-recognized section headers (e.g. "Experience", "Education", "Skills", "Summary"). Do not use stylized or creative alternatives, even if the original resume did.
 5. SIMPLE FORMATTING: Do not generate content that implies tables, columns, or graphical layout.
-6. HONEST KEYWORD ALIGNMENT: Prioritize aligning your wording with the job description's explicit keywords and phrasing, but ONLY where that keyword genuinely reflects something already present in the original resume.`,
+6. HONEST KEYWORD ALIGNMENT: Prioritize aligning your wording with the job description's explicit keywords and phrasing, but ONLY where that keyword genuinely reflects something already present in the original resume.
+7. COVER LETTER STRUCTURE: Ensure the cover letter output is broken into distinct paragraphs (greeting, 3-4 body paragraphs, sign-off) separated by EXACTLY a double newline (\n\n).`,
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
@@ -161,6 +182,11 @@ ${jobDescription}
     const result = await model.generateContent(prompt);
     let text = result.response.text();
     let jsonOutput = JSON.parse(text);
+    
+    // Re-attach the exact, untampered contact block
+    jsonOutput.tailored_resume.name = extractedContact.name;
+    const { name, ...contactFields } = extractedContact;
+    jsonOutput.tailored_resume.contact_info = contactFields;
 
     // POST-VALIDATION: Ensure no sections were dropped
     let outputString = JSON.stringify(jsonOutput).toUpperCase();
@@ -181,6 +207,10 @@ Please regenerate the JSON output and ensure you INCLUDE these sections. You can
         
         text = result2.response.text();
         jsonOutput = JSON.parse(text);
+        
+        jsonOutput.tailored_resume.name = extractedContact.name;
+        jsonOutput.tailored_resume.contact_info = contactFields;
+
         outputString = JSON.stringify(jsonOutput).toUpperCase();
         missingSections = detectedSections.filter(sec => !outputString.includes(sec.toUpperCase()));
       } catch (retryErr) {
