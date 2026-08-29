@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, Schema, SchemaType } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const MODEL_NAME = process.env.GEMINI_MODEL_NAME || "gemini-2.5-flash";
 
 const responseSchema: Schema = {
   type: SchemaType.OBJECT,
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Extract contact info separately
     const contactModel = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: MODEL_NAME,
       systemInstruction: "Extract the contact information block from this resume. Output valid JSON. Capture exact URLs (e.g. https://linkedin.com/in/name) and emails. Do not fabricate or modify them.",
       generationConfig: {
         responseMimeType: "application/json",
@@ -144,7 +145,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Main Tailoring
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: MODEL_NAME,
       systemInstruction: `You are an expert technical recruiter and resume writer. 
 Your task is to tailor a user's existing resume to a specific job description.
 
