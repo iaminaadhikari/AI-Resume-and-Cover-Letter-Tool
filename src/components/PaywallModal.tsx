@@ -28,7 +28,7 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
             You've reached your free limit
           </h2>
           <p className="max-w-2xl mx-auto mb-12 text-lg text-gray-600 dark:text-gray-400">
-            Upgrade to tailor unlimited resumes and get the perfect job match. Choose the plan that works for you.
+            Upgrade to tailor unlimited CVs and get the perfect job match. Choose the plan that works for you.
           </p>
 
           <div className="grid gap-8 md:grid-cols-2">

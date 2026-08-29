@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Resume & Cover Letter Tool",
-  description: "Tailor your resume for any job description instantly.",
+  title: "AI CV & Cover Letter Tool",
+  description: "Tailor your CV for any job description instantly.",
 };
 
 export default function RootLayout({

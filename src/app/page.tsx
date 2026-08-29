@@ -76,7 +76,7 @@ export default function Home() {
     setError("");
     
     if (!originalResume.trim() || !jobDescription.trim()) {
-      setError("Please provide both your original resume and the job description.");
+      setError("Please provide both your original CV and the job description.");
       return;
     }
 
@@ -98,7 +98,7 @@ export default function Home() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to tailor resume.");
+        throw new Error(errorData.error || "Failed to tailor CV.");
       }
 
       const data = await response.json();
@@ -194,11 +194,11 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-12 pt-8">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl mb-4 text-gray-900 dark:text-white drop-shadow-none" style={{ textShadow: "none", WebkitTextStroke: "0" }}>
-            Turn any resume into a perfect match for any job <br className="hidden md:block"/>
+            Turn any CV into a perfect match for any job <br className="hidden md:block"/>
             <span className="text-indigo-600 dark:text-indigo-400">— in under a minute</span>
           </h1>
           <p className="max-w-2xl mx-auto text-xl text-gray-600 dark:text-gray-400">
-            Stop manually rewriting your resume for every application. Paste your current resume and the job description, and we'll do the rest.
+            Stop manually rewriting your CV for every application. Paste your current CV and the job description, and we'll do the rest.
           </p>
         </div>
 
@@ -206,7 +206,7 @@ export default function Home() {
         <div className="grid gap-6 md:grid-cols-2 mb-8">
           <div className="flex flex-col">
             <div className="flex justify-between items-end mb-2">
-              <label htmlFor="resume" className="font-medium text-gray-500 dark:text-gray-400">1. Your Existing Resume</label>
+              <label htmlFor="resume" className="font-medium text-gray-500 dark:text-gray-400">1. Your Existing CV</label>
               <div className="relative">
                 <input
                   type="file"
@@ -268,7 +268,7 @@ export default function Home() {
               id="resume"
               value={originalResume}
               onChange={(e) => setOriginalResume(e.target.value)}
-              placeholder="Paste your plain text resume here, or upload a file..."
+              placeholder="Paste your plain text CV here, or upload a file..."
               className="flex-1 min-h-[300px] p-4 border border-gray-200 dark:border-[#333945] rounded-xl bg-white dark:bg-[#20242D] focus:ring-2 focus:ring-indigo-600 dark:focus:ring-indigo-500 outline-none resize-y shadow-sm"
             />
           </div>
@@ -306,7 +306,7 @@ export default function Home() {
             ) : (
               <>
                 <Sparkles className="w-5 h-5" />
-                Tailor My Resume
+                Tailor My CV
               </>
             )}
           </button>
@@ -334,7 +334,7 @@ export default function Home() {
                     : "text-gray-500 dark:text-gray-500 border-b-2 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
               >
-                Tailored Resume
+                Tailored CV
               </button>
               <button
                 onClick={() => setActiveTab("cover_letter")}
@@ -563,7 +563,7 @@ export default function Home() {
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">1</div>
                 <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">Paste Content</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Paste your existing resume and the target job description.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Paste your existing CV and the target job description.</p>
               </div>
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">2</div>
@@ -573,7 +573,7 @@ export default function Home() {
               <div className="flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center font-bold text-xl mb-4">3</div>
                 <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">Apply & Win</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">Download your tailored resume and cover letter, ready to submit.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Download your tailored CV and cover letter, ready to submit.</p>
               </div>
             </div>
           </div>
