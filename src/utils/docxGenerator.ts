@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ExternalHyperlink } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ExternalHyperlink, ImageRun } from "docx";
 
 export interface StyleProfile {
   headingColor?: string | null;
@@ -34,9 +34,20 @@ export interface StructuredResume {
   }[];
   projects?: {
     name: string;
+    url?: string;
     technologies?: string[];
     dates?: string;
     bullets: string[];
+  }[];
+  custom_sections?: {
+    section_title: string;
+    entries: {
+      title: string;
+      url?: string;
+      subtitle?: string;
+      dates?: string;
+      bullets?: string[];
+    }[];
   }[];
 }
 
@@ -65,14 +76,34 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
   );
 
   const contactItems = [];
-  if (resume.contact_info.email) contactItems.push({ type: "email", text: resume.contact_info.email, url: `mailto:${resume.contact_info.email}` });
+  if (resume.contact_info.email) contactItems.push({ type: "mail", text: resume.contact_info.email, url: `mailto:${resume.contact_info.email}` });
   if (resume.contact_info.phone) contactItems.push({ type: "phone", text: resume.contact_info.phone });
-  if (resume.contact_info.location) contactItems.push({ type: "location", text: resume.contact_info.location });
+  if (resume.contact_info.location) contactItems.push({ type: "map-pin", text: resume.contact_info.location });
   if (resume.contact_info.linkedin_url) contactItems.push({ type: "linkedin", text: "LinkedIn", url: resume.contact_info.linkedin_url });
   if (resume.contact_info.github_url) contactItems.push({ type: "github", text: "GitHub", url: resume.contact_info.github_url });
 
   const contactChildren: any[] = [];
-  contactItems.forEach((item, idx) => {
+  
+  for (let idx = 0; idx < contactItems.length; idx++) {
+    const item = contactItems[idx];
+    
+    // Fetch and add icon SVG
+    try {
+      const res = await fetch(`/icons/${item.type}.svg`);
+      if (res.ok) {
+        const arrayBuffer = await res.arrayBuffer();
+        contactChildren.push(
+          new ImageRun({
+            data: arrayBuffer,
+            transformation: { width: 12, height: 12 },
+          }),
+          new TextRun({ text: " ", size: 20 }) // space between icon and text
+        );
+      }
+    } catch (e) {
+      console.error("Failed to load icon", item.type, e);
+    }
+
     // Add text or hyperlink
     if (item.url) {
       contactChildren.push(
@@ -111,7 +142,7 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
         })
       );
     }
-  });
+  }
 
   // Contact Info
   children.push(
@@ -287,24 +318,29 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
   if (resume.projects && resume.projects.length > 0) {
     addSectionHeader("Projects");
     resume.projects.forEach((proj) => {
-      let titleText = proj.name;
+      const runs = [];
+      if (proj.url) {
+        runs.push(new ExternalHyperlink({
+          children: [new TextRun({ text: proj.name, bold: true, size: FONT_SIZE, font: FONT_FAMILY, color: HEADER_COLOR, underline: {} })],
+          link: proj.url
+        }));
+      } else {
+        runs.push(new TextRun({ text: proj.name, bold: true, size: FONT_SIZE, font: FONT_FAMILY }));
+      }
+
       if (proj.technologies && proj.technologies.length > 0) {
-        titleText += ` | ${proj.technologies.join(", ")}`;
+        runs.push(new TextRun({ text: ` | ${proj.technologies.join(", ")}`, bold: true, size: FONT_SIZE, font: FONT_FAMILY, color: "555555" }));
+      }
+      
+      if (proj.dates) {
+        runs.push(new TextRun({ text: `\t${proj.dates}`, bold: true, size: FONT_SIZE, font: FONT_FAMILY }));
       }
       
       children.push(
         new Paragraph({
           spacing: { before: 120, after: 40 },
-          children: [
-            new TextRun({ text: titleText, bold: true, size: FONT_SIZE, font: FONT_FAMILY }),
-            ...(proj.dates ? [new TextRun({ text: `\t${proj.dates}`, bold: true, size: FONT_SIZE, font: FONT_FAMILY })] : []),
-          ],
-          tabStops: [
-            {
-              type: "right",
-              position: 9000,
-            },
-          ],
+          children: runs,
+          tabStops: [{ type: "right", position: 9000 }],
         })
       );
 
@@ -312,15 +348,54 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
         children.push(
           new Paragraph({
             bullet: { level: 0 },
-            children: [
-              new TextRun({
-                text: bullet,
-                size: FONT_SIZE,
-                font: FONT_FAMILY,
-              }),
-            ],
+            children: [new TextRun({ text: bullet, size: FONT_SIZE, font: FONT_FAMILY })],
           })
         );
+      });
+    });
+  }
+
+  // Custom Sections
+  if (resume.custom_sections && resume.custom_sections.length > 0) {
+    resume.custom_sections.forEach((sec) => {
+      addSectionHeader(sec.section_title);
+      sec.entries.forEach((entry) => {
+        const runs = [];
+        if (entry.url) {
+          runs.push(new ExternalHyperlink({
+            children: [new TextRun({ text: entry.title, bold: true, size: FONT_SIZE, font: FONT_FAMILY, color: HEADER_COLOR, underline: {} })],
+            link: entry.url
+          }));
+        } else {
+          runs.push(new TextRun({ text: entry.title, bold: true, size: FONT_SIZE, font: FONT_FAMILY }));
+        }
+
+        if (entry.subtitle) {
+          runs.push(new TextRun({ text: ` | ${entry.subtitle}`, bold: true, size: FONT_SIZE, font: FONT_FAMILY, color: "555555" }));
+        }
+        
+        if (entry.dates) {
+          runs.push(new TextRun({ text: `\t${entry.dates}`, bold: true, size: FONT_SIZE, font: FONT_FAMILY }));
+        }
+        
+        children.push(
+          new Paragraph({
+            spacing: { before: 120, after: 40 },
+            children: runs,
+            tabStops: [{ type: "right", position: 9000 }],
+          })
+        );
+
+        if (entry.bullets) {
+          entry.bullets.forEach((bullet) => {
+            children.push(
+              new Paragraph({
+                bullet: { level: 0 },
+                children: [new TextRun({ text: bullet, size: FONT_SIZE, font: FONT_FAMILY })],
+              })
+            );
+          });
+        }
       });
     });
   }

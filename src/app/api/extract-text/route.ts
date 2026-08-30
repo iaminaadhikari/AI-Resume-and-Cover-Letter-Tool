@@ -116,10 +116,36 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     let text = "";
     let styleProfile = null;
+    const linksMap: Record<string, string> = {};
 
     if (file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf") {
       try {
-        const pdfData = await pdfParse(buffer);
+        const renderPage = async (pageData: any) => {
+          const textContent = await pageData.getTextContent();
+          const annotations = await pageData.getAnnotations();
+          
+          annotations.forEach((a: any) => {
+            if (a.url && a.rect) {
+              const url = a.url;
+              // Find overlapping text
+              let linkText = "";
+              textContent.items.forEach((item: any) => {
+                const x = item.transform[4];
+                const y = item.transform[5];
+                // Y axis is inverted in some cases, but just rough bounding box check
+                if (x >= a.rect[0] - 5 && x <= a.rect[2] + 5 && y >= a.rect[1] - 5 && y <= a.rect[3] + 5) {
+                  linkText += item.str;
+                }
+              });
+              if (linkText.trim()) {
+                linksMap[linkText.trim()] = url;
+              }
+            }
+          });
+          return textContent.items.map((i: any) => i.str).join(' ');
+        };
+        
+        const pdfData = await pdfParse(buffer, { pagerender: renderPage });
         text = pdfData.text;
         styleProfile = await extractPdfStyles(buffer);
       } catch (e: any) {
@@ -128,8 +154,21 @@ export async function POST(req: NextRequest) {
       }
     } else if (file.name.toLowerCase().endsWith(".docx") || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
       try {
-        const result = await mammoth.extractRawText({ buffer });
-        text = result.value;
+        const rawResult = await mammoth.extractRawText({ buffer });
+        text = rawResult.value;
+        
+        const htmlResult = await mammoth.convertToHtml({ buffer });
+        const html = htmlResult.value;
+        const linkRegex = /<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+        let match;
+        while ((match = linkRegex.exec(html)) !== null) {
+          const url = match[1];
+          const rawText = match[2].replace(/<[^>]+>/g, "").trim();
+          if (rawText && url) {
+            linksMap[rawText] = url;
+          }
+        }
+        
         styleProfile = await extractDocxStyles(buffer);
       } catch (e: any) {
         throw new Error("Failed to parse DOCX file.");
@@ -147,7 +186,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ 
       text: text.trim(),
-      styleProfile 
+      styleProfile,
+      linksMap
     });
   } catch (error: any) {
     console.error("Error extracting text:", error);

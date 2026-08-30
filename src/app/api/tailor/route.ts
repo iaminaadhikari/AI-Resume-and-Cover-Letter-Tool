@@ -57,11 +57,37 @@ const responseSchema: Schema = {
             type: SchemaType.OBJECT,
             properties: {
               name: { type: SchemaType.STRING },
+              url: { type: SchemaType.STRING },
               technologies: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
               dates: { type: SchemaType.STRING },
               bullets: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
             },
             required: ["name", "bullets"]
+          }
+        },
+        custom_sections: {
+          type: SchemaType.ARRAY,
+          description: "Use this for any top-level sections (like Certifications, Training, Awards, Publications) that don't fit into the other specific arrays. NEVER merge independent sections into Education or Experience.",
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              section_title: { type: SchemaType.STRING, description: "The original section header (e.g., 'Certifications', 'Training')" },
+              entries: {
+                type: SchemaType.ARRAY,
+                items: {
+                  type: SchemaType.OBJECT,
+                  properties: {
+                    title: { type: SchemaType.STRING },
+                    url: { type: SchemaType.STRING },
+                    subtitle: { type: SchemaType.STRING },
+                    dates: { type: SchemaType.STRING },
+                    bullets: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
+                  },
+                  required: ["title"]
+                }
+              }
+            },
+            required: ["section_title", "entries"]
           }
         }
       },
@@ -107,7 +133,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { originalResume, jobDescription } = body;
+    const { originalResume, jobDescription, linksMap } = body;
 
     if (!originalResume || !jobDescription) {
       return NextResponse.json(
@@ -156,7 +182,8 @@ CRITICAL RULES:
 4. ATS-FRIENDLY HEADERS: Use standard, ATS-recognized section headers (e.g. "Experience", "Education", "Skills", "Summary"). Do not use stylized or creative alternatives, even if the original resume did.
 5. SIMPLE FORMATTING: Do not generate content that implies tables, columns, or graphical layout.
 6. HONEST KEYWORD ALIGNMENT: Prioritize aligning your wording with the job description's explicit keywords and phrasing, but ONLY where that keyword genuinely reflects something already present in the original resume.
-7. COVER LETTER STRUCTURE: Ensure the cover letter output is broken into distinct paragraphs (greeting, 3-4 body paragraphs, sign-off) separated by EXACTLY a double newline (\n\n).`,
+7. COVER LETTER STRUCTURE: Ensure the cover letter output is broken into distinct paragraphs (greeting, 3-4 body paragraphs, sign-off) separated by EXACTLY a double newline (\\n\\n).
+8. DO NOT MODIFY ENTITY NAMES: Project titles and Certification names must be preserved EXACTLY as they appear in the original so we can re-attach their URLs later. Do not reword their titles.`,
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: responseSchema,
@@ -168,10 +195,12 @@ CRITICAL RULES:
 DETECTED ORIGINAL SECTIONS: ${detectedSections.join(", ")}
 
 Your output MUST include all of the following sections, in this exact set: ${detectedSections.join(", ")}. 
-Do not omit any of them, even if a section seems less relevant to the job description — trim its contents instead. Map extra sections (like Certifications, Training, Awards) into the closest available schema arrays (e.g., 'projects', 'education', or 'experience') using the section name as the title if a dedicated field doesn't exist.
+Do not omit any of them, even if a section seems less relevant to the job description — trim its contents instead. Map extra sections (like Certifications, Training, Awards) into the 'custom_sections' array. 
+CRITICAL: Do NOT merge independent top-level sections into Education or Experience! If the original had 'Certifications' as its own section, it MUST be a separate entry in 'custom_sections' with 'section_title': 'Certifications'.
 
 Incorrect: omitting a Certifications section because the job posting doesn't mention certifications.
-Correct: keeping the Certifications section but trimming it to the 1-2 most relevant certifications, or keeping all of them reworded if the section is already short.
+Incorrect: nesting Certifications inside the Education array.
+Correct: mapping the Certifications section into its own separate object in the 'custom_sections' array.
 
 --- ORIGINAL RESUME ---
 ${originalResume}
@@ -190,6 +219,24 @@ ${jobDescription}
     jsonOutput.tailored_resume.contact_info = contactFields;
 
     // POST-VALIDATION: Ensure no sections were dropped
+    
+    // Attach mapped URLs
+    if (linksMap) {
+      if (jsonOutput.tailored_resume.projects) {
+        jsonOutput.tailored_resume.projects.forEach((proj: any) => {
+          if (linksMap[proj.name]) proj.url = linksMap[proj.name];
+        });
+      }
+      if (jsonOutput.tailored_resume.custom_sections) {
+        jsonOutput.tailored_resume.custom_sections.forEach((sec: any) => {
+          if (sec.entries) {
+            sec.entries.forEach((entry: any) => {
+              if (linksMap[entry.title]) entry.url = linksMap[entry.title];
+            });
+          }
+        });
+      }
+    }
     let outputString = JSON.stringify(jsonOutput).toUpperCase();
     let missingSections = detectedSections.filter(sec => !outputString.includes(sec.toUpperCase()));
 
@@ -214,6 +261,24 @@ Please regenerate the JSON output and ensure you INCLUDE these sections. You can
 
         outputString = JSON.stringify(jsonOutput).toUpperCase();
         missingSections = detectedSections.filter(sec => !outputString.includes(sec.toUpperCase()));
+        
+        // Re-attach mapped URLs
+        if (linksMap) {
+          if (jsonOutput.tailored_resume.projects) {
+            jsonOutput.tailored_resume.projects.forEach((proj: any) => {
+              if (linksMap[proj.name]) proj.url = linksMap[proj.name];
+            });
+          }
+          if (jsonOutput.tailored_resume.custom_sections) {
+            jsonOutput.tailored_resume.custom_sections.forEach((sec: any) => {
+              if (sec.entries) {
+                sec.entries.forEach((entry: any) => {
+                  if (linksMap[entry.title]) entry.url = linksMap[entry.title];
+                });
+              }
+            });
+          }
+        }
       } catch (retryErr) {
         console.error("[VALIDATION] Retry request failed:", retryErr);
       }

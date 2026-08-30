@@ -32,14 +32,26 @@ interface StructuredResume {
   }[];
   projects?: {
     name: string;
+    url?: string;
     technologies?: string[];
     dates?: string;
     bullets: string[];
+  }[];
+  custom_sections?: {
+    section_title: string;
+    entries: {
+      title: string;
+      url?: string;
+      subtitle?: string;
+      dates?: string;
+      bullets?: string[];
+    }[];
   }[];
 }
 
 export default function Home() {
   const [originalResume, setOriginalResume] = useState("");
+  const [linksMap, setLinksMap] = useState<Record<string, string>>({});
   const [styleProfile, setStyleProfile] = useState<any>(null);
   const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -98,7 +110,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ originalResume, jobDescription }),
+        body: JSON.stringify({ originalResume, jobDescription, linksMap }),
       });
 
       if (!response.ok) {
@@ -169,9 +181,24 @@ export default function Home() {
     if (resume.projects && resume.projects.length > 0) {
       text += `PROJECTS\n`;
       resume.projects.forEach(proj => {
-        text += `${proj.name}${proj.technologies ? ` | ${proj.technologies.join(", ")}` : ""}${proj.dates ? ` | ${proj.dates}` : ""}\n`;
+        text += `${proj.name}${proj.url ? ` (${proj.url})` : ""}${proj.technologies ? ` | ${proj.technologies.join(", ")}` : ""}${proj.dates ? ` | ${proj.dates}` : ""}\n`;
         proj.bullets.forEach(bullet => {
           text += `- ${bullet}\n`;
+        });
+        text += `\n`;
+      });
+    }
+
+    if (resume.custom_sections && resume.custom_sections.length > 0) {
+      resume.custom_sections.forEach(sec => {
+        text += `${sec.section_title.toUpperCase()}\n`;
+        sec.entries.forEach(entry => {
+          text += `${entry.title}${entry.url ? ` (${entry.url})` : ""}${entry.subtitle ? ` | ${entry.subtitle}` : ""}${entry.dates ? ` | ${entry.dates}` : ""}\n`;
+          if (entry.bullets) {
+            entry.bullets.forEach(bullet => {
+              text += `- ${bullet}\n`;
+            });
+          }
         });
         text += `\n`;
       });
@@ -250,6 +277,7 @@ export default function Home() {
                       if (!res.ok) throw new Error(data.error || "Failed to extract text");
                       
                       setOriginalResume(data.text);
+                      if (data.linksMap) setLinksMap(data.linksMap);
                       if (data.styleProfile) {
                         setStyleProfile(data.styleProfile);
                       }
@@ -390,7 +418,8 @@ export default function Home() {
                           const url = URL.createObjectURL(blob);
                           const element = document.createElement("a");
                           element.href = url;
-                          element.download = `${activeTab}.docx`;
+                          const filenameBase = activeTab === "resume" ? "CV" : activeTab === "cover_letter" ? "Cover_Letter" : "Changes";
+                          element.download = `${filenameBase}.docx`;
                           document.body.appendChild(element);
                           element.click();
                           document.body.removeChild(element);
@@ -407,7 +436,8 @@ export default function Home() {
                     <button
                       onClick={() => {
                         const text = activeTab === "resume" ? formatResumeToText(result.tailored_resume) : result.cover_letter;
-                        downloadTxt(text, `${activeTab}.txt`);
+                        const filenameBase = activeTab === "resume" ? "CV" : activeTab === "cover_letter" ? "Cover_Letter" : "Changes";
+                        downloadTxt(text, `${filenameBase}.txt`);
                       }}
                       className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-gray-200 dark:border-[#333945] text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-[#2A2E37] transition-colors"
                     >
@@ -545,7 +575,11 @@ export default function Home() {
                             <div key={idx}>
                               <div className="flex justify-between items-baseline mb-1">
                                 <h4 className="font-bold text-base">
-                                  {proj.name}
+                                  {proj.url ? (
+                                    <a href={proj.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined }}>
+                                      {proj.name}
+                                    </a>
+                                  ) : proj.name}
                                   {proj.technologies && <span className="font-normal text-sm italic ml-2 text-gray-600 dark:text-gray-400">| {proj.technologies.join(", ")}</span>}
                                 </h4>
                                 {proj.dates && <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap ml-4">{proj.dates}</span>}
@@ -558,6 +592,41 @@ export default function Home() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Custom Sections */}
+                    {result.tailored_resume.custom_sections && result.tailored_resume.custom_sections.length > 0 && (
+                      <div className="mb-6">
+                        {result.tailored_resume.custom_sections.map((sec, secIdx) => (
+                          <div key={secIdx} className="mb-6 last:mb-0">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 border-b border-gray-200 dark:border-[#333945] pb-1 mb-3" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined, fontFamily: styleProfile?.headingFont || undefined }}>{sec.section_title}</h3>
+                            <div className="space-y-4">
+                              {sec.entries.map((entry, idx) => (
+                                <div key={idx}>
+                                  <div className="flex justify-between items-baseline mb-1">
+                                    <h4 className="font-bold text-base">
+                                      {entry.url ? (
+                                        <a href={entry.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined }}>
+                                          {entry.title}
+                                        </a>
+                                      ) : entry.title}
+                                      {entry.subtitle && <span className="font-normal text-sm ml-2 text-gray-700 dark:text-gray-300">| {entry.subtitle}</span>}
+                                    </h4>
+                                    {entry.dates && <span className="text-sm font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap ml-4">{entry.dates}</span>}
+                                  </div>
+                                  {entry.bullets && entry.bullets.length > 0 && (
+                                    <ul className="list-disc list-outside ml-4 space-y-1 text-sm mt-1 text-gray-700 dark:text-gray-300">
+                                      {entry.bullets.map((bullet, bIdx) => (
+                                        <li key={bIdx} className="pl-1">{bullet}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
