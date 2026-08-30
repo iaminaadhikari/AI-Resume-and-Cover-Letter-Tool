@@ -92,9 +92,15 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
       const res = await fetch(`/icons/${item.type}.svg`);
       if (res.ok) {
         const arrayBuffer = await res.arrayBuffer();
+        const fallbackPng = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='), c => c.charCodeAt(0));
         contactChildren.push(
           new ImageRun({
+            type: "svg",
             data: arrayBuffer,
+            fallback: {
+              type: "png",
+              data: fallbackPng,
+            },
             transformation: { width: 12, height: 12 },
           }),
           new TextRun({ text: " ", size: 20 }) // space between icon and text
