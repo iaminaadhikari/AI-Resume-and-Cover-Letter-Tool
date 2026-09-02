@@ -23,7 +23,7 @@ export interface StructuredResume {
     company: string;
     location?: string;
     dates: string;
-    bullets: string[];
+    bullets: (string | { text: string, url?: string })[];
   }[];
   education: {
     degree: string;
@@ -37,7 +37,7 @@ export interface StructuredResume {
     url?: string;
     technologies?: string[];
     dates?: string;
-    bullets: string[];
+    bullets: (string | { text: string, url?: string })[];
   }[];
   custom_sections?: {
     section_title: string;
@@ -46,7 +46,7 @@ export interface StructuredResume {
       url?: string;
       subtitle?: string;
       dates?: string;
-      bullets?: string[];
+      bullets?: (string | { text: string, url?: string })[];
     }[];
   }[];
 }
