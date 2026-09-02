@@ -195,8 +195,8 @@ CRITICAL RULES:
 DETECTED ORIGINAL SECTIONS: ${detectedSections.join(", ")}
 
 Your output MUST include all of the following sections, in this exact set: ${detectedSections.join(", ")}. 
-Do not omit any of them, even if a section seems less relevant to the job description — trim its contents instead. Map extra sections (like Certifications, Training, Awards) into the 'custom_sections' array. 
-CRITICAL: Do NOT merge independent top-level sections into Education or Experience! If the original had 'Certifications' as its own section, it MUST be a separate entry in 'custom_sections' with 'section_title': 'Certifications'.
+Do not omit any of them, even if a section seems less relevant to the job description — trim its contents instead. Map extra sections (like Certifications, Training, Awards) into the 'custom_sections' array.  CRITICAL: Do NOT merge independent top-level sections into Education or Experience! If the original had 'Certifications' as its own section, it MUST be a separate entry in 'custom_sections' with 'section_title': 'Certifications'.
+  CRITICAL: Do NOT reword project names, certification titles, or any bullet points that represent distinct entities. You MUST preserve them verbatim, character-for-character, so they can be accurately matched back to their original hyperlink URLs.
 
 Incorrect: omitting a Certifications section because the job posting doesn't mention certifications.
 Incorrect: nesting Certifications inside the Education array.
@@ -220,23 +220,52 @@ ${jobDescription}
 
     // POST-VALIDATION: Ensure no sections were dropped
     
-    // Attach mapped URLs
-    if (linksMap) {
-      if (jsonOutput.tailored_resume.projects) {
-        jsonOutput.tailored_resume.projects.forEach((proj: any) => {
-          if (linksMap[proj.name]) proj.url = linksMap[proj.name];
+    function attachUrls(json: any, map: Record<string, string>) {
+      if (!map || Object.keys(map).length === 0) return;
+      
+      const processBullets = (bullets: any[]) => {
+        if (!bullets) return;
+        for (let i = 0; i < bullets.length; i++) {
+          if (typeof bullets[i] === 'string') {
+            if (map[bullets[i]]) {
+              bullets[i] = { text: bullets[i], url: map[bullets[i]] };
+            } else {
+              for (const [key, url] of Object.entries(map)) {
+                if (key.length > 3 && bullets[i].includes(key)) {
+                  bullets[i] = { text: bullets[i], url };
+                  break;
+                }
+              }
+            }
+          }
+        }
+      };
+
+      if (json.tailored_resume.projects) {
+        json.tailored_resume.projects.forEach((proj: any) => {
+          if (map[proj.name]) proj.url = map[proj.name];
+          processBullets(proj.bullets);
         });
       }
-      if (jsonOutput.tailored_resume.custom_sections) {
-        jsonOutput.tailored_resume.custom_sections.forEach((sec: any) => {
+      if (json.tailored_resume.custom_sections) {
+        json.tailored_resume.custom_sections.forEach((sec: any) => {
           if (sec.entries) {
             sec.entries.forEach((entry: any) => {
-              if (linksMap[entry.title]) entry.url = linksMap[entry.title];
+              if (map[entry.title]) entry.url = map[entry.title];
+              processBullets(entry.bullets);
             });
           }
         });
       }
+      if (json.tailored_resume.experience) {
+        json.tailored_resume.experience.forEach((exp: any) => {
+          processBullets(exp.bullets);
+        });
+      }
     }
+    
+    // Attach mapped URLs
+    attachUrls(jsonOutput, linksMap);
     let outputString = JSON.stringify(jsonOutput).toUpperCase();
     let missingSections = detectedSections.filter(sec => !outputString.includes(sec.toUpperCase()));
 
@@ -263,22 +292,7 @@ Please regenerate the JSON output and ensure you INCLUDE these sections. You can
         missingSections = detectedSections.filter(sec => !outputString.includes(sec.toUpperCase()));
         
         // Re-attach mapped URLs
-        if (linksMap) {
-          if (jsonOutput.tailored_resume.projects) {
-            jsonOutput.tailored_resume.projects.forEach((proj: any) => {
-              if (linksMap[proj.name]) proj.url = linksMap[proj.name];
-            });
-          }
-          if (jsonOutput.tailored_resume.custom_sections) {
-            jsonOutput.tailored_resume.custom_sections.forEach((sec: any) => {
-              if (sec.entries) {
-                sec.entries.forEach((entry: any) => {
-                  if (linksMap[entry.title]) entry.url = linksMap[entry.title];
-                });
-              }
-            });
-          }
-        }
+        attachUrls(jsonOutput, linksMap);
       } catch (retryErr) {
         console.error("[VALIDATION] Retry request failed:", retryErr);
       }

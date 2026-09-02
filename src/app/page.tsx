@@ -530,7 +530,7 @@ export default function Home() {
                               </div>
                               <ul className="list-disc list-outside ml-4 space-y-1 text-sm text-gray-700 dark:text-gray-300">
                                 {exp.bullets.map((bullet, bIdx) => (
-                                  <li key={bIdx} className="pl-1">{bullet}</li>
+                                  <li key={bIdx} className="pl-1">{typeof bullet === "string" ? bullet : (bullet.url && bullet.url !== "null" && bullet.url.trim() !== "" ? <a href={bullet.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400">{bullet.text}</a> : bullet.text)}</li>
                                 ))}
                               </ul>
                             </div>
@@ -586,7 +586,7 @@ export default function Home() {
                               </div>
                               <ul className="list-disc list-outside ml-4 space-y-1 text-sm mt-1 text-gray-700 dark:text-gray-300">
                                 {proj.bullets.map((bullet, bIdx) => (
-                                  <li key={bIdx} className="pl-1">{bullet}</li>
+                                  <li key={bIdx} className="pl-1">{typeof bullet === "string" ? bullet : (bullet.url && bullet.url !== "null" && bullet.url.trim() !== "" ? <a href={bullet.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400">{bullet.text}</a> : bullet.text)}</li>
                                 ))}
                               </ul>
                             </div>
@@ -618,7 +618,15 @@ export default function Home() {
                                   {entry.bullets && entry.bullets.length > 0 && (
                                     <ul className="list-disc list-outside ml-4 space-y-1 text-sm mt-1 text-gray-700 dark:text-gray-300">
                                       {entry.bullets.map((bullet, bIdx) => (
-                                        <li key={bIdx} className="pl-1">{bullet}</li>
+                                        <li key={bIdx} className="pl-1">
+                                      {typeof bullet === "string" ? bullet : (
+                                        bullet.url && bullet.url !== "null" && bullet.url.trim() !== "" ? (
+                                          <a href={bullet.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400">
+                                            {bullet.text}
+                                          </a>
+                                        ) : bullet.text
+                                      )}
+                                    </li>
                                       ))}
                                     </ul>
                                   )}

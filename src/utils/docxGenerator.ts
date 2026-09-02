@@ -233,16 +233,21 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
         })
       );
       exp.bullets.forEach((bullet) => {
+        const runs = [];
+        if (typeof bullet === "string") {
+          runs.push(new TextRun({ text: bullet, size: FONT_SIZE, font: FONT_FAMILY }));
+        } else if (bullet.url && bullet.url !== "null" && bullet.url.trim() !== "") {
+          runs.push(new ExternalHyperlink({
+            children: [new TextRun({ text: bullet.text, size: FONT_SIZE, font: FONT_FAMILY, color: HEADER_COLOR, underline: {} })],
+            link: bullet.url
+          }));
+        } else {
+          runs.push(new TextRun({ text: bullet.text, size: FONT_SIZE, font: FONT_FAMILY }));
+        }
         children.push(
           new Paragraph({
             bullet: { level: 0 },
-            children: [
-              new TextRun({
-                text: bullet,
-                size: FONT_SIZE,
-                font: FONT_FAMILY,
-              }),
-            ],
+            children: runs,
           })
         );
       });
@@ -331,10 +336,21 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
       );
 
       proj.bullets.forEach((bullet) => {
+        const runs = [];
+        if (typeof bullet === "string") {
+          runs.push(new TextRun({ text: bullet, size: FONT_SIZE, font: FONT_FAMILY }));
+        } else if (bullet.url && bullet.url !== "null" && bullet.url.trim() !== "") {
+          runs.push(new ExternalHyperlink({
+            children: [new TextRun({ text: bullet.text, size: FONT_SIZE, font: FONT_FAMILY, color: HEADER_COLOR, underline: {} })],
+            link: bullet.url
+          }));
+        } else {
+          runs.push(new TextRun({ text: bullet.text, size: FONT_SIZE, font: FONT_FAMILY }));
+        }
         children.push(
           new Paragraph({
             bullet: { level: 0 },
-            children: [new TextRun({ text: bullet, size: FONT_SIZE, font: FONT_FAMILY })],
+            children: runs,
           })
         );
       });
@@ -374,10 +390,21 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
 
         if (entry.bullets) {
           entry.bullets.forEach((bullet) => {
+            const runs = [];
+            if (typeof bullet === "string") {
+              runs.push(new TextRun({ text: bullet, size: FONT_SIZE, font: FONT_FAMILY }));
+            } else if (bullet.url && bullet.url !== "null" && bullet.url.trim() !== "") {
+              runs.push(new ExternalHyperlink({
+                children: [new TextRun({ text: bullet.text, size: FONT_SIZE, font: FONT_FAMILY, color: HEADER_COLOR, underline: {} })],
+                link: bullet.url
+              }));
+            } else {
+              runs.push(new TextRun({ text: bullet.text, size: FONT_SIZE, font: FONT_FAMILY }));
+            }
             children.push(
               new Paragraph({
                 bullet: { level: 0 },
-                children: [new TextRun({ text: bullet, size: FONT_SIZE, font: FONT_FAMILY })],
+                children: runs,
               })
             );
           });
