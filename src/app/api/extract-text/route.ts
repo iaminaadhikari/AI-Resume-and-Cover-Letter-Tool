@@ -52,65 +52,10 @@ async function extractDocxStyles(buffer: Buffer) {
 }
 
 async function extractPdfStyles(buffer: Buffer): Promise<any> {
-  return new Promise((resolve) => {
-    // Suppress warnings from pdf2json's form-field parsing so we don't spam the logs
-    const originalWarn = console.warn;
-    console.warn = (...args) => {
-      if (typeof args[0] === 'string' && (args[0].includes('Unsupported: field.type') || args[0].includes('NOT valid form element') || args[0].includes('Setting up fake worker'))) return;
-      originalWarn(...args);
-    };
-
-    try {
-      // Dynamic import to avoid next.js bundling issues with some node libs if any
-      const PDFParser = require("pdf2json");
-      const parser = new PDFParser();
-      
-      parser.on("pdfParser_dataError", (errData: any) => {
-        console.warn = originalWarn;
-        console.error("PDF style extraction error:", errData);
-        resolve(null);
-      });
-      
-      parser.on("pdfParser_dataReady", (pdfData: any) => {
-        try {
-          const colorCounts: Record<string, number> = {};
-          
-          pdfData.Pages.forEach((page: any) => {
-            page.Texts.forEach((text: any) => {
-              if (text.oc) {
-                let hex = text.oc.toUpperCase();
-                if (hex.startsWith("#")) hex = hex.substring(1);
-                // Ignore black/white and grays
-                if (hex !== "000000" && hex !== "FFFFFF" && !hex.startsWith("4") && !hex.startsWith("5") && !hex.startsWith("6") && !hex.startsWith("7")) {
-                  colorCounts[hex] = (colorCounts[hex] || 0) + 1;
-                }
-              }
-            });
-          });
-          
-          const sortedColors = Object.keys(colorCounts).sort((a, b) => colorCounts[b] - colorCounts[a]);
-          const headingColor = sortedColors.length > 0 ? sortedColors[0] : null;
-          
-          console.warn = originalWarn;
-          resolve({
-            headingColor,
-            headingFont: null,
-            bodyFont: null,
-          });
-        } catch (err: any) {
-          console.warn = originalWarn;
-          console.error("Error processing PDF styles:", err);
-          resolve(null);
-        }
-      });
-      
-      parser.parseBuffer(buffer);
-    } catch (e) {
-      console.warn = originalWarn;
-      console.error("Failed to start PDF style extraction:", e);
-      resolve(null);
-    }
-  });
+  // pdf2json was throwing "Warning: Unsupported: field.type of Link" and we don't 
+  // strictly need PDF color extraction if it compromises the link extraction pipeline.
+  // Returning null falls back to default styles safely.
+  return null;
 }
 
 export async function POST(req: NextRequest) {
@@ -134,26 +79,39 @@ export async function POST(req: NextRequest) {
           const textContent = await pageData.getTextContent();
           const annotations = await pageData.getAnnotations();
           
+          let linkCount = 0;
           annotations.forEach((a: any) => {
-            if (a.url && a.rect) {
-              const url = a.url;
+            if (a.subtype === "Link" || (a.url && a.rect)) {
+              const url = a.url || (a.action ? a.action.uri : null) || (a.dest ? a.dest : null);
+              if (!url || typeof url !== "string") return;
+              linkCount++;
+              
               // Find overlapping text
-              let linkText = "";
+              const intersectingItems: any[] = [];
               textContent.items.forEach((item: any) => {
                 const x = item.transform[4];
                 const y = item.transform[5];
                 const w = item.width || 0;
                 const h = item.height || 12;
-                // Y axis is inverted in some cases, but just rough bounding box check
-                if (x + w >= a.rect[0] - 5 && x <= a.rect[2] + 5 && y >= a.rect[1] - h && y <= a.rect[3] + h) {
-                  linkText += item.str;
+                
+                // Allow generous overlap
+                if (x + w >= a.rect[0] - 10 && x <= a.rect[2] + 10 && y >= a.rect[1] - (h + 10) && y <= a.rect[3] + (h + 10)) {
+                  intersectingItems.push({ item, x, y });
                 }
               });
-              if (linkText.trim()) {
-                linksMap[linkText.trim()] = url;
+              
+              // Sort left-to-right to ensure correct word order
+              intersectingItems.sort((a, b) => a.x - b.x);
+              
+              let linkText = intersectingItems.map(i => i.item.str).join('').replace(/\s+/g, ' ').trim();
+              if (linkText) {
+                linksMap[linkText] = url;
               }
             }
           });
+          
+          console.log(`[PDF Parsing] Page ${pageData.pageNumber} - Found ${linkCount} link annotations.`);
+          
           return textContent.items.map((i: any) => i.str).join(' ');
         };
         
@@ -194,6 +152,10 @@ export async function POST(req: NextRequest) {
         { error: "Could not extract text. The file might be scanned or empty. Please paste your resume text instead." },
         { status: 400 }
       );
+    }
+
+    if (linksMap) {
+      console.log(`[PDF/DOCX Parsing] Final Extracted Linked Entities Map:`, JSON.stringify(linksMap, null, 2));
     }
 
     return NextResponse.json({ 
