@@ -181,7 +181,7 @@ export default function Home() {
     if (resume.projects && resume.projects.length > 0) {
       text += `PROJECTS\n`;
       resume.projects.forEach(proj => {
-        text += `${proj.name}${proj.url ? ` (${proj.url})` : ""}${proj.technologies ? ` | ${proj.technologies.join(", ")}` : ""}${proj.dates ? ` | ${proj.dates}` : ""}\n`;
+        text += `${proj.name}${proj.url && proj.url !== "null" && proj.url.trim() !== "" ? ` (${proj.url})` : ""}${proj.technologies ? ` | ${proj.technologies.join(", ")}` : ""}${proj.dates ? ` | ${proj.dates}` : ""}\n`;
         proj.bullets.forEach(bullet => {
           text += `- ${bullet}\n`;
         });
@@ -193,7 +193,7 @@ export default function Home() {
       resume.custom_sections.forEach(sec => {
         text += `${sec.section_title.toUpperCase()}\n`;
         sec.entries.forEach(entry => {
-          text += `${entry.title}${entry.url ? ` (${entry.url})` : ""}${entry.subtitle ? ` | ${entry.subtitle}` : ""}${entry.dates ? ` | ${entry.dates}` : ""}\n`;
+          text += `${entry.title}${entry.url && entry.url !== "null" && entry.url.trim() !== "" ? ` (${entry.url})` : ""}${entry.subtitle ? ` | ${entry.subtitle}` : ""}${entry.dates ? ` | ${entry.dates}` : ""}\n`;
           if (entry.bullets) {
             entry.bullets.forEach(bullet => {
               text += `- ${bullet}\n`;
@@ -479,7 +479,7 @@ export default function Home() {
                           return items.map((item, idx) => (
                             <span key={idx} className="flex items-center">
                               {getContactIcon(item.type)}
-                              {item.url ? (
+                              {item.url && item.url !== "null" && item.url.trim() !== "" ? (
                                 <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined }}>
                                   {item.text}
                                 </a>
@@ -575,7 +575,7 @@ export default function Home() {
                             <div key={idx}>
                               <div className="flex justify-between items-baseline mb-1">
                                 <h4 className="font-bold text-base">
-                                  {proj.url ? (
+                                  {proj.url && proj.url !== "null" && proj.url.trim() !== "" ? (
                                     <a href={proj.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined }}>
                                       {proj.name}
                                     </a>
@@ -606,7 +606,7 @@ export default function Home() {
                                 <div key={idx}>
                                   <div className="flex justify-between items-baseline mb-1">
                                     <h4 className="font-bold text-base">
-                                      {entry.url ? (
+                                      {entry.url && entry.url !== "null" && entry.url.trim() !== "" ? (
                                         <a href={entry.url} target="_blank" rel="noopener noreferrer" className="hover:underline text-indigo-600 dark:text-indigo-400" style={{ color: styleProfile?.headingColor ? `#${styleProfile.headingColor}` : undefined }}>
                                           {entry.title}
                                         </a>

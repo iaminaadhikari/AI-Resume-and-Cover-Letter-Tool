@@ -76,42 +76,22 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
   );
 
   const contactItems = [];
-  if (resume.contact_info.email) contactItems.push({ type: "mail", text: resume.contact_info.email, url: `mailto:${resume.contact_info.email}` });
-  if (resume.contact_info.phone) contactItems.push({ type: "phone", text: resume.contact_info.phone });
-  if (resume.contact_info.location) contactItems.push({ type: "map-pin", text: resume.contact_info.location });
-  if (resume.contact_info.linkedin_url) contactItems.push({ type: "linkedin", text: "LinkedIn", url: resume.contact_info.linkedin_url });
-  if (resume.contact_info.github_url) contactItems.push({ type: "github", text: "GitHub", url: resume.contact_info.github_url });
+  if (resume.contact_info.email) contactItems.push({ prefix: "Email: ", text: resume.contact_info.email, url: `mailto:${resume.contact_info.email}` });
+  if (resume.contact_info.phone) contactItems.push({ prefix: "Phone: ", text: resume.contact_info.phone });
+  if (resume.contact_info.location) contactItems.push({ prefix: "Location: ", text: resume.contact_info.location });
+  if (resume.contact_info.linkedin_url) contactItems.push({ prefix: "", text: "LinkedIn", url: resume.contact_info.linkedin_url });
+  if (resume.contact_info.github_url) contactItems.push({ prefix: "", text: "GitHub", url: resume.contact_info.github_url });
 
   const contactChildren: any[] = [];
   
   for (let idx = 0; idx < contactItems.length; idx++) {
     const item = contactItems[idx];
     
-    // Fetch and add icon SVG
-    try {
-      const res = await fetch(`/icons/${item.type}.svg`);
-      if (res.ok) {
-        const arrayBuffer = await res.arrayBuffer();
-        const fallbackPng = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='), c => c.charCodeAt(0));
-        contactChildren.push(
-          new ImageRun({
-            type: "svg",
-            data: arrayBuffer,
-            fallback: {
-              type: "png",
-              data: fallbackPng,
-            },
-            transformation: { width: 12, height: 12 },
-          }),
-          new TextRun({ text: " ", size: 20 }) // space between icon and text
-        );
-      }
-    } catch (e) {
-      console.error("Failed to load icon", item.type, e);
-    }
-
     // Add text or hyperlink
-    if (item.url) {
+    if (item.url && item.url !== "null" && item.url.trim() !== "") {
+      if (item.prefix) {
+        contactChildren.push(new TextRun({ text: item.prefix, size: 20, font: FONT_FAMILY, color: "555555" }));
+      }
       contactChildren.push(
         new ExternalHyperlink({
           children: [
@@ -129,7 +109,7 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
     } else {
       contactChildren.push(
         new TextRun({
-          text: item.text,
+          text: item.prefix + item.text,
           size: 20,
           font: FONT_FAMILY,
           color: "555555",
@@ -325,7 +305,7 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
     addSectionHeader("Projects");
     resume.projects.forEach((proj) => {
       const runs = [];
-      if (proj.url) {
+      if (proj.url && proj.url !== "null" && proj.url.trim() !== "") {
         runs.push(new ExternalHyperlink({
           children: [new TextRun({ text: proj.name, bold: true, size: FONT_SIZE, font: FONT_FAMILY, color: HEADER_COLOR, underline: {} })],
           link: proj.url
@@ -367,7 +347,7 @@ export async function generateResumeDocx(resume: StructuredResume, styleProfile?
       addSectionHeader(sec.section_title);
       sec.entries.forEach((entry) => {
         const runs = [];
-        if (entry.url) {
+        if (entry.url && entry.url !== "null" && entry.url.trim() !== "") {
           runs.push(new ExternalHyperlink({
             children: [new TextRun({ text: entry.title, bold: true, size: FONT_SIZE, font: FONT_FAMILY, color: HEADER_COLOR, underline: {} })],
             link: entry.url
