@@ -4,6 +4,26 @@ import { GoogleGenerativeAI, Schema, SchemaType } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const MODEL_NAME = process.env.GEMINI_MODEL_NAME || "gemini-2.5-flash";
 
+async function generateWithRetry(modelInstance: any, promptData: any, maxRetries = 3) {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await modelInstance.generateContent(promptData);
+    } catch (err: any) {
+      if ((err.status >= 500 && err.status < 600) || err.message?.includes('503') || err.message?.includes('overloaded')) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          throw new Error('The AI service is experiencing high demand right now — please try again in a moment');
+        }
+        console.log(`[RETRY] Gemini API 5xx error. Retrying attempt ${attempt} in ${Math.pow(2, attempt)}s...`);
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
 const responseSchema: Schema = {
   type: SchemaType.OBJECT,
   properties: {
@@ -57,7 +77,6 @@ const responseSchema: Schema = {
             type: SchemaType.OBJECT,
             properties: {
               name: { type: SchemaType.STRING },
-              url: { type: SchemaType.STRING },
               technologies: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
               dates: { type: SchemaType.STRING },
               bullets: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
@@ -78,7 +97,6 @@ const responseSchema: Schema = {
                   type: SchemaType.OBJECT,
                   properties: {
                     title: { type: SchemaType.STRING },
-                    url: { type: SchemaType.STRING },
                     subtitle: { type: SchemaType.STRING },
                     dates: { type: SchemaType.STRING },
                     bullets: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
@@ -157,8 +175,8 @@ export async function POST(req: NextRequest) {
             email: { type: SchemaType.STRING },
             phone: { type: SchemaType.STRING },
             location: { type: SchemaType.STRING },
-            linkedin_url: { type: SchemaType.STRING },
-            github_url: { type: SchemaType.STRING },
+            linkedin: { type: SchemaType.STRING },
+            github: { type: SchemaType.STRING },
           },
           required: ["name"]
         }
@@ -166,7 +184,7 @@ export async function POST(req: NextRequest) {
     });
     
     // We only need the top part of the resume typically, but sending full is fine for flash
-    const contactResult = await contactModel.generateContent(`Extract contact info:\n\n${originalResume.substring(0, 3000)}`);
+    const contactResult = await generateWithRetry(contactModel, `Extract contact info:\n\n${originalResume.substring(0, 3000)}`);
     const extractedContact = JSON.parse(contactResult.response.text());
 
     // 2. Main Tailoring
@@ -209,7 +227,7 @@ ${originalResume}
 ${jobDescription}
 `;
 
-    const result = await model.generateContent(prompt);
+    const result = await generateWithRetry(model, prompt);
     let text = result.response.text();
     let jsonOutput = JSON.parse(text);
     
@@ -240,6 +258,30 @@ ${jobDescription}
           }
         }
       };
+
+      if (json.tailored_resume.contact_info) {
+        let liText = json.tailored_resume.contact_info.linkedin;
+        if (liText && map[liText]) {
+          json.tailored_resume.contact_info.linkedin_url = map[liText];
+        } else {
+          for (const [key, url] of Object.entries(map)) {
+            if (url.includes('linkedin.com')) {
+              json.tailored_resume.contact_info.linkedin_url = url; break;
+            }
+          }
+        }
+        
+        let ghText = json.tailored_resume.contact_info.github;
+        if (ghText && map[ghText]) {
+          json.tailored_resume.contact_info.github_url = map[ghText];
+        } else {
+          for (const [key, url] of Object.entries(map)) {
+            if (url.includes('github.com')) {
+              json.tailored_resume.contact_info.github_url = url; break;
+            }
+          }
+        }
+      }
 
       if (json.tailored_resume.projects) {
         json.tailored_resume.projects.forEach((proj: any) => {
@@ -276,7 +318,7 @@ ${jobDescription}
 Please regenerate the JSON output and ensure you INCLUDE these sections. You can map them into the 'projects', 'education', or 'experience' arrays if there isn't a direct field, but you MUST preserve their content.`;
 
       try {
-        const result2 = await model.generateContent([
+        const result2 = await generateWithRetry(model, [
           { text: prompt },
           { text: text },
           { text: retryPrompt }

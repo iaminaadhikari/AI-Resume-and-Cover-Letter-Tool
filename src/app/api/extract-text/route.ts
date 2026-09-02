@@ -53,12 +53,20 @@ async function extractDocxStyles(buffer: Buffer) {
 
 async function extractPdfStyles(buffer: Buffer): Promise<any> {
   return new Promise((resolve) => {
+    // Suppress warnings from pdf2json's form-field parsing so we don't spam the logs
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+      if (typeof args[0] === 'string' && (args[0].includes('Unsupported: field.type') || args[0].includes('NOT valid form element') || args[0].includes('Setting up fake worker'))) return;
+      originalWarn(...args);
+    };
+
     try {
       // Dynamic import to avoid next.js bundling issues with some node libs if any
       const PDFParser = require("pdf2json");
       const parser = new PDFParser();
       
       parser.on("pdfParser_dataError", (errData: any) => {
+        console.warn = originalWarn;
         console.error("PDF style extraction error:", errData);
         resolve(null);
       });
@@ -82,22 +90,24 @@ async function extractPdfStyles(buffer: Buffer): Promise<any> {
           
           const sortedColors = Object.keys(colorCounts).sort((a, b) => colorCounts[b] - colorCounts[a]);
           const headingColor = sortedColors.length > 0 ? sortedColors[0] : null;
-
+          
+          console.warn = originalWarn;
           resolve({
             headingColor,
             headingFont: null,
             bodyFont: null,
-            bodySize: null
           });
-        } catch(e) {
-          console.error("Error processing pdfData:", e);
+        } catch (err: any) {
+          console.warn = originalWarn;
+          console.error("Error processing PDF styles:", err);
           resolve(null);
         }
       });
       
       parser.parseBuffer(buffer);
     } catch (e) {
-      console.error("Failed to init PDFParser:", e);
+      console.warn = originalWarn;
+      console.error("Failed to start PDF style extraction:", e);
       resolve(null);
     }
   });
@@ -132,8 +142,10 @@ export async function POST(req: NextRequest) {
               textContent.items.forEach((item: any) => {
                 const x = item.transform[4];
                 const y = item.transform[5];
+                const w = item.width || 0;
+                const h = item.height || 12;
                 // Y axis is inverted in some cases, but just rough bounding box check
-                if (x >= a.rect[0] - 5 && x <= a.rect[2] + 5 && y >= a.rect[1] - 5 && y <= a.rect[3] + 5) {
+                if (x + w >= a.rect[0] - 5 && x <= a.rect[2] + 5 && y >= a.rect[1] - h && y <= a.rect[3] + h) {
                   linkText += item.str;
                 }
               });
