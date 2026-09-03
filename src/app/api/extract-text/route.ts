@@ -86,33 +86,90 @@ export async function POST(req: NextRequest) {
               if (!url || typeof url !== "string") return;
               linkCount++;
               
-              // Find overlapping text
-              const intersectingItems: any[] = [];
+              // Group all items by approximate Y coordinate (line)
+              const lineMap = new Map<number, any[]>();
               textContent.items.forEach((item: any) => {
-                const x = item.transform[4];
-                const y = item.transform[5];
-                const w = item.width || 0;
-                const h = item.height || 12;
+                const y = Math.round(item.transform[5]);
+                // group within 3 points
+                let foundY = y;
+                for (const ky of lineMap.keys()) {
+                  if (Math.abs(ky - y) <= 3) {
+                    foundY = ky;
+                    break;
+                  }
+                }
+                if (!lineMap.has(foundY)) lineMap.set(foundY, []);
+                lineMap.get(foundY)!.push(item);
+              });
+
+              // Convert to array of lines
+              const lines: any[] = [];
+              for (const [lineY, items] of lineMap.entries()) {
+                items.sort((a: any, b: any) => a.transform[4] - b.transform[4]); // sort by X
+                // Only include text items that fall roughly within the annotation's X bounds, OR use the whole line if the annotation is wide
+                // Actually, if we just use the entire line's text, it's very robust because Gemini preserves the whole string.
+                // But let's restrict it to text that overlaps the annotation horizontally to avoid grabbing unrelated columns.
+                const overlappingItems = items.filter((i: any) => {
+                  const ix = i.transform[4];
+                  const iw = i.width || 0;
+                  return (ix + iw >= a.rect[0] - 20) && (ix <= a.rect[2] + 20);
+                });
                 
-                // Allow generous overlap
-                if (x + w >= a.rect[0] - 10 && x <= a.rect[2] + 10 && y >= a.rect[1] - (h + 10) && y <= a.rect[3] + (h + 10)) {
-                  intersectingItems.push({ item, x, y });
+                if (overlappingItems.length > 0) {
+                  const lineText = overlappingItems.map((i: any) => i.str).join('').replace(/\s+/g, ' ').trim();
+                  lines.push({ y: lineY, text: lineText, items: overlappingItems });
+                }
+              }
+
+              // Find the line that is closest to the annotation's center Y
+              const annotCenterY = (a.rect[1] + a.rect[3]) / 2;
+              let closestLine: any = null;
+              let minDiff = Infinity;
+              
+              lines.forEach(line => {
+                const diff = Math.abs(line.y - annotCenterY);
+                if (diff < minDiff) {
+                  minDiff = diff;
+                  closestLine = line;
                 }
               });
-              
-              // Sort left-to-right to ensure correct word order
-              intersectingItems.sort((a, b) => a.x - b.x);
-              
-              let linkText = intersectingItems.map(i => i.item.str).join('').replace(/\s+/g, ' ').trim();
-              if (linkText) {
-                linksMap[linkText] = url;
+
+              if (closestLine && minDiff < 15) { // within a reasonable vertical distance
+                const linkText = closestLine.text;
+                if (linkText) {
+                  linksMap[linkText] = url;
+                }
               }
             }
           });
           
           console.log(`[PDF Parsing] Page ${pageData.pageNumber} - Found ${linkCount} link annotations.`);
           
-          return textContent.items.map((i: any) => i.str).join(' ');
+          // Reconstruct text with newlines to help Gemini parse structure correctly
+          const pageLines = new Map<number, any[]>();
+          textContent.items.forEach((item: any) => {
+            const y = Math.round(item.transform[5]);
+            let foundY = y;
+            for (const ky of pageLines.keys()) {
+              if (Math.abs(ky - y) <= 4) {
+                foundY = ky;
+                break;
+              }
+            }
+            if (!pageLines.has(foundY)) pageLines.set(foundY, []);
+            pageLines.get(foundY)!.push(item);
+          });
+          
+          // Sort lines by Y descending (PDF coordinates usually have Y=0 at bottom)
+          const sortedY = Array.from(pageLines.keys()).sort((a, b) => b - a);
+          
+          const textWithNewlines = sortedY.map(y => {
+            const items = pageLines.get(y)!;
+            items.sort((a, b) => a.transform[4] - b.transform[4]);
+            return items.map(i => i.str).join('').replace(/\s+/g, ' ').trim();
+          }).join('\n');
+          
+          return textWithNewlines;
         };
         
         const pdfData = await pdfParse(buffer, { pagerender: renderPage });
