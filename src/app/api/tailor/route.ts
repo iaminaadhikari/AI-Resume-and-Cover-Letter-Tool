@@ -10,12 +10,19 @@ async function generateWithRetry(modelInstance: any, promptData: any, maxRetries
     try {
       return await modelInstance.generateContent(promptData);
     } catch (err: any) {
-      if ((err.status >= 500 && err.status < 600) || err.message?.includes('503') || err.message?.includes('overloaded')) {
+      // 1. Check for genuine quota limit hit (free tier 20/day limit)
+      const errorStr = (err.message || "") + " " + JSON.stringify(err);
+      if (errorStr.includes('QuotaFailure') || (err.status === 429 && (errorStr.includes('quota') || errorStr.includes('exhausted')))) {
+        throw new Error("You've reached today's usage limit for the AI model. This is a limit on the connected Google API plan, not an app error — try again later, or upgrade the plan for higher daily limits.");
+      }
+      
+      // 2. Retry transient errors (503s, overloaded, or short-lived 429s)
+      if ((err.status >= 500 && err.status < 600) || err.status === 429 || errorStr.includes('503') || errorStr.includes('overloaded') || errorStr.includes('Too Many Requests')) {
         attempt++;
         if (attempt >= maxRetries) {
           throw new Error('The AI service is experiencing high demand right now — please try again in a moment');
         }
-        console.log(`[RETRY] Gemini API 5xx error. Retrying attempt ${attempt} in ${Math.pow(2, attempt)}s...`);
+        console.log(`[RETRY] Gemini API transient error (attempt ${attempt}/${maxRetries}). Retrying in ${Math.pow(2, attempt)}s...`);
         await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
       } else {
         throw err;
@@ -290,11 +297,11 @@ ${jobDescription}
         if (liText) {
           const url = findUrlMatch(liText, 'Contact LinkedIn');
           if (url) json.tailored_resume.contact_info.linkedin_url = url;
-          else {
-            for (const [key, urlVal] of Object.entries(map)) {
-              if (urlVal.includes('linkedin.com')) {
-                json.tailored_resume.contact_info.linkedin_url = urlVal; break;
-              }
+        }
+        if (!json.tailored_resume.contact_info.linkedin_url) {
+          for (const [key, urlVal] of Object.entries(map)) {
+            if (urlVal.includes('linkedin.com')) {
+              json.tailored_resume.contact_info.linkedin_url = urlVal; break;
             }
           }
         }
@@ -303,11 +310,11 @@ ${jobDescription}
         if (ghText) {
           const url = findUrlMatch(ghText, 'Contact GitHub');
           if (url) json.tailored_resume.contact_info.github_url = url;
-          else {
-            for (const [key, urlVal] of Object.entries(map)) {
-              if (urlVal.includes('github.com')) {
-                json.tailored_resume.contact_info.github_url = urlVal; break;
-              }
+        }
+        if (!json.tailored_resume.contact_info.github_url) {
+          for (const [key, urlVal] of Object.entries(map)) {
+            if (urlVal.includes('github.com')) {
+              json.tailored_resume.contact_info.github_url = urlVal; break;
             }
           }
         }
