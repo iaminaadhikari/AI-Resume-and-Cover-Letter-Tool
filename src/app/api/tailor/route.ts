@@ -240,20 +240,46 @@ ${jobDescription}
     
     function attachUrls(json: any, map: Record<string, string>) {
       if (!map || Object.keys(map).length === 0) return;
+
+      function normalizeStr(str: string): string {
+        if (!str) return '';
+        let s = str.trim();
+        let prev = '';
+        while (s !== prev) {
+          prev = s;
+          s = s.replace(/^\d+\.\s*/, '');
+          s = s.replace(/^[-•|]\s*/, '');
+          s = s.replace(/^(LinkedIn|GitHub|Email|Phone|Location):\s*/i, '');
+        }
+        const match = s.match(/(.*?)(?:\s+[-|]\s+)([^-|]+)$/);
+        if (match) {
+          const potentialTag = match[2];
+          if (potentialTag.length < 50 && !potentialTag.includes('.')) {
+            s = match[1];
+          }
+        }
+        return s.toLowerCase().trim();
+      }
+
+      function findUrlMatch(entityName: string, entityContext: string): string | null {
+        if (!entityName) return null;
+        const normEntity = normalizeStr(entityName);
+        for (const [key, url] of Object.entries(map)) {
+          const normKey = normalizeStr(key);
+          const isMatch = normEntity === normKey || normKey.includes(normEntity);
+          console.log(`[Link Match ${isMatch ? 'SUCCESS' : 'FAIL'}] Context: '${entityContext}' | Entity: '${normEntity}' | PDF Key: '${normKey}'`);
+          if (isMatch) return url;
+        }
+        return null;
+      }
       
-      const processBullets = (bullets: any[]) => {
+      const processBullets = (bullets: any[], context: string) => {
         if (!bullets) return;
         for (let i = 0; i < bullets.length; i++) {
           if (typeof bullets[i] === 'string') {
-            if (map[bullets[i]]) {
-              bullets[i] = { text: bullets[i], url: map[bullets[i]] };
-            } else {
-              for (const [key, url] of Object.entries(map)) {
-                if (key.length > 3 && bullets[i].includes(key)) {
-                  bullets[i] = { text: bullets[i], url };
-                  break;
-                }
-              }
+            const url = findUrlMatch(bullets[i], context + ' Bullet');
+            if (url) {
+              bullets[i] = { text: bullets[i], url };
             }
           }
         }
@@ -261,23 +287,27 @@ ${jobDescription}
 
       if (json.tailored_resume.contact_info) {
         let liText = json.tailored_resume.contact_info.linkedin;
-        if (liText && map[liText]) {
-          json.tailored_resume.contact_info.linkedin_url = map[liText];
-        } else {
-          for (const [key, url] of Object.entries(map)) {
-            if (url.includes('linkedin.com')) {
-              json.tailored_resume.contact_info.linkedin_url = url; break;
+        if (liText) {
+          const url = findUrlMatch(liText, 'Contact LinkedIn');
+          if (url) json.tailored_resume.contact_info.linkedin_url = url;
+          else {
+            for (const [key, urlVal] of Object.entries(map)) {
+              if (urlVal.includes('linkedin.com')) {
+                json.tailored_resume.contact_info.linkedin_url = urlVal; break;
+              }
             }
           }
         }
         
         let ghText = json.tailored_resume.contact_info.github;
-        if (ghText && map[ghText]) {
-          json.tailored_resume.contact_info.github_url = map[ghText];
-        } else {
-          for (const [key, url] of Object.entries(map)) {
-            if (url.includes('github.com')) {
-              json.tailored_resume.contact_info.github_url = url; break;
+        if (ghText) {
+          const url = findUrlMatch(ghText, 'Contact GitHub');
+          if (url) json.tailored_resume.contact_info.github_url = url;
+          else {
+            for (const [key, urlVal] of Object.entries(map)) {
+              if (urlVal.includes('github.com')) {
+                json.tailored_resume.contact_info.github_url = urlVal; break;
+              }
             }
           }
         }
@@ -285,23 +315,25 @@ ${jobDescription}
 
       if (json.tailored_resume.projects) {
         json.tailored_resume.projects.forEach((proj: any) => {
-          if (map[proj.name]) proj.url = map[proj.name];
-          processBullets(proj.bullets);
+          const url = findUrlMatch(proj.name, 'Project Title');
+          if (url) proj.url = url;
+          processBullets(proj.bullets, proj.name);
         });
       }
       if (json.tailored_resume.custom_sections) {
         json.tailored_resume.custom_sections.forEach((sec: any) => {
           if (sec.entries) {
             sec.entries.forEach((entry: any) => {
-              if (map[entry.title]) entry.url = map[entry.title];
-              processBullets(entry.bullets);
+              const url = findUrlMatch(entry.title, 'Custom Section Title');
+              if (url) entry.url = url;
+              processBullets(entry.bullets, entry.title);
             });
           }
         });
       }
       if (json.tailored_resume.experience) {
         json.tailored_resume.experience.forEach((exp: any) => {
-          processBullets(exp.bullets);
+          processBullets(exp.bullets, exp.company);
         });
       }
     }
